@@ -2,81 +2,44 @@
 
 ScriptLab is an open-source SSML (Speech Synthesis Markup Language) editor designed specifically for ElevenLabs' text-to-speech API. It provides a secure, user-friendly interface for creating and testing SSML-enhanced voice content.
 
-## Why is this Secure?
+## Security Architecture
 
-Our architecture ensures your ElevenLabs API key remains protected:
+Our API key handling system ensures your ElevenLabs API key remains protected through encryption:
 
 ```mermaid
-graph TD
-    subgraph Client
-        UI[SSML Editor UI]
-        EC[Encryption Client]
-    end
-    
-    subgraph Server
-        M[Middleware]
-        AR[API Routes]
-        D[Decryption]
-    end
-    
-    subgraph Storage
-        HC[HTTP-only Cookie]
-    end
-    
-    subgraph External
-        EL[ElevenLabs API]
-    end
+sequenceDiagram
+    participant User
+    participant Client
+    participant Server
+    participant Cookie
+    participant ElevenLabs
 
-    %% Flow for setting API key
-    UI -->|1. Submit API Key| EC
-    EC -->|2. Encrypt Key| AR
-    AR -->|3. Store Encrypted| HC
+    %% Key Storage Flow
+    User->>Client: Enter API Key
+    Note over Client: AES Encryption
+    Client->>Server: Send encrypted key
+    Server->>Cookie: Store in HTTP-only cookie
 
-    %% Flow for using API key
-    UI -->|4. Make TTS Request| AR
-    HC -->|5. Get Encrypted Key| M
-    M -->|6. Decrypt Key| D
-    D -->|7. Add Key to Headers| AR
-    AR -->|8. Use Key| EL
+    %% Key Usage Flow
+    Client->>Server: Request TTS
+    Cookie->>Server: Get encrypted key
+    Note over Server: AES Decryption
+    Server->>ElevenLabs: Make API call with decrypted key
+    ElevenLabs->>Client: Return audio
 ```
 
-### Security Features
+### How it Works
 
-1. **Client-Side**
-   - API key is immediately encrypted using AES
-   - No raw API key storage in localStorage/sessionStorage
-   - No client-side access to decrypted key
+1. **When you enter your API key:**
+   - Your API key is immediately encrypted using AES encrtbsmhption in the browser
+   - Only the encrypted version is sent to our server
+   - The encrypted key is stored in an HTTP-only cookie (inaccessible to JavaScript)
 
-2. **Transport**
-   - Encrypted key transmitted over HTTPS
-   - HTTP-only cookies prevent XSS attacks
-   - Secure cookie flags in production
-
-3. **Server-Side**
-   - Middleware handles decryption automatically
-   - API key only decrypted when needed
-   - Key never exposed in server logs or errors
-
-### Architecture Flow
-
-1. **API Key Storage**
-   ```mermaid
-   sequenceDiagram
-       User->>UI: Enter API Key
-       UI->>Client: Encrypt with AES
-       Client->>Server: Send encrypted key
-       Server->>Cookie: Store in HTTP-only cookie
-   ```
-
-2. **API Key Usage**
-   ```mermaid
-   sequenceDiagram
-       UI->>Server: Request TTS
-       Server->>Cookie: Get encrypted key
-       Server->>Server: Decrypt key
-       Server->>ElevenLabs: Make API call
-       ElevenLabs->>UI: Return audio
-   ```
+2. **When making API calls:**
+   - Our server retrieves the encrypted key from the cookie
+   - Decrypts it securely on the server side
+   - Uses it to authenticate with ElevenLabs
+   - The original API key is never stored or exposed
 
 ## Features
 
