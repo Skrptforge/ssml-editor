@@ -1,13 +1,130 @@
-# ScriptLab — Full Next.js App (TypeScript + shadcn + Tailwind)
+# ScriptLab - Secure SSML Editor for ElevenLabs
 
-This single-file code doc contains a ready-to-copy project scaffold for a Notion-like script editor with per-line audio playback and SSML selection tooling. Paste the files into your Next.js project folder structure exactly as named.
+ScriptLab is an open-source SSML (Speech Synthesis Markup Language) editor designed specifically for ElevenLabs' text-to-speech API. It provides a secure, user-friendly interface for creating and testing SSML-enhanced voice content.
 
----
+## Why is this Secure?
 
-### /README.md
+Our architecture ensures your ElevenLabs API key remains protected:
 
-```md
-# ScriptLab
+```mermaid
+graph TD
+    subgraph Client
+        UI[SSML Editor UI]
+        EC[Encryption Client]
+    end
+    
+    subgraph Server
+        M[Middleware]
+        AR[API Routes]
+        D[Decryption]
+    end
+    
+    subgraph Storage
+        HC[HTTP-only Cookie]
+    end
+    
+    subgraph External
+        EL[ElevenLabs API]
+    end
+
+    %% Flow for setting API key
+    UI -->|1. Submit API Key| EC
+    EC -->|2. Encrypt Key| AR
+    AR -->|3. Store Encrypted| HC
+
+    %% Flow for using API key
+    UI -->|4. Make TTS Request| AR
+    HC -->|5. Get Encrypted Key| M
+    M -->|6. Decrypt Key| D
+    D -->|7. Add Key to Headers| AR
+    AR -->|8. Use Key| EL
+```
+
+### Security Features
+
+1. **Client-Side**
+   - API key is immediately encrypted using AES
+   - No raw API key storage in localStorage/sessionStorage
+   - No client-side access to decrypted key
+
+2. **Transport**
+   - Encrypted key transmitted over HTTPS
+   - HTTP-only cookies prevent XSS attacks
+   - Secure cookie flags in production
+
+3. **Server-Side**
+   - Middleware handles decryption automatically
+   - API key only decrypted when needed
+   - Key never exposed in server logs or errors
+
+### Architecture Flow
+
+1. **API Key Storage**
+   ```mermaid
+   sequenceDiagram
+       User->>UI: Enter API Key
+       UI->>Client: Encrypt with AES
+       Client->>Server: Send encrypted key
+       Server->>Cookie: Store in HTTP-only cookie
+   ```
+
+2. **API Key Usage**
+   ```mermaid
+   sequenceDiagram
+       UI->>Server: Request TTS
+       Server->>Cookie: Get encrypted key
+       Server->>Server: Decrypt key
+       Server->>ElevenLabs: Make API call
+       ElevenLabs->>UI: Return audio
+   ```
+
+## Features
+
+- Real-time SSML validation
+- Break tag customization
+- Emphasis controls
+- Secure API key handling
+- Dark/Light theme support
+
+## Setup
+
+1. Clone the repository
+```bash
+git clone https://github.com/Skrptforge/ssml-editor.git
+cd ssml-editor
+```
+
+2. Install dependencies
+```bash
+npm install
+```
+
+3. Create a `.env.local` file:
+```env
+NEXT_PUBLIC_ENCRYPTION_KEY=your_secure_key_here
+```
+
+4. Run the development server
+```bash
+npm run dev
+```
+
+## Tech Stack
+
+- Next.js 14
+- TypeScript
+- Tailwind CSS
+- Shadcn UI
+- CryptoJS for encryption
+- Axios for API calls
+
+## Contributing
+
+Pull requests are welcome! Check out our [issues](https://github.com/Skrptforge/ssml-editor/issues) for ways to contribute.
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details.
 
 Notion-style script editor with per-line play, SSML editing toolbar and ElevenLabs integration.
 
