@@ -1,7 +1,17 @@
 export interface Block {
   id: string;
   text: string;
-  ssml?: string;
+  break?: {
+    time: number;
+  };
+  emphasis?: {
+    level: "strong" | "moderate" | "reduced";
+  };
+  prosody?: {
+    rate?: string;  
+    pitch?: string; 
+    volume?: string; 
+  };
 }
 
 export interface Selection {

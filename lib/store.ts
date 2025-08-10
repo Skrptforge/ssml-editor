@@ -8,7 +8,7 @@ interface EditorState {
   speaking: boolean;
   actions: {
     createBlock: (afterId: string, initialText?: string, splitAt?: number) => string;
-    updateBlock: (id: string, text: string) => void;
+    updateBlock: (id: string, updates: Partial<Omit<Block, 'id'>>) => void;
     deleteBlock: (id: string) => void;
     mergeWithPrevious: (id: string) => void;
     setSelectedBlock: (id: string | null) => void;
@@ -21,13 +21,18 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   blocks: [{
     id: uuid(),
     text: '',
+    ssml: '<speak></speak>'
   }],
   selectedBlockId: null,
   speaking: false,
 
   actions: {
     createBlock: (afterId: string, initialText = '', splitAt?: number) => {
-      const newBlock = { id: uuid(), text: initialText };
+      const newBlock = { 
+        id: uuid(), 
+        text: initialText,
+        ssml: `<speak>${initialText}</speak>`
+      };
       
       set(state => {
         const index = state.blocks.findIndex(b => b.id === afterId);
@@ -62,10 +67,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       return newBlock.id;
     },
 
-    updateBlock: (id: string, text: string) => {
+    updateBlock: (id: string, updates: Partial<Omit<Block, 'id'>>) => {
       set(state => ({
         blocks: state.blocks.map(block =>
-          block.id === id ? { ...block, text } : block
+          block.id === id ? { ...block, ...updates } : block
         )
       }));
     },
