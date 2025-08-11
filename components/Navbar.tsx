@@ -2,8 +2,9 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { GithubIcon } from 'lucide-react';
+import { GithubIcon, Settings } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { Button } from './ui/button';
 
 export function Navbar() {
   return (
@@ -17,26 +18,14 @@ export function Navbar() {
             >
               ScriptLab
             </Link>
-            <div className="hidden md:block ml-10">
-              <div className="flex items-baseline space-x-4">
-                <Link 
-                  href="/templates" 
-                  className="text-foreground/70 hover:text-foreground px-3 py-2 rounded-md text-sm"
-                >
-                  Templates
-                </Link>
-                <Link 
-                  href="/docs" 
-                  className="text-foreground/70 hover:text-foreground px-3 py-2 rounded-md text-sm"
-                >
-                  Docs
-                </Link>
-              </div>
-            </div>
           </div>
           
           <div className="flex items-center gap-4">
-            <ThemeToggle />
+            <Link href="/settings">
+              <Button variant="ghost" size="icon">
+                <Settings className="h-5 w-5" />
+              </Button>
+            </Link>
             <a
               href="https://github.com/yourusername/scriptlab"
               target="_blank"
@@ -45,9 +34,6 @@ export function Navbar() {
             >
               <GithubIcon className="h-5 w-5" />
             </a>
-            <button className="bg-primary/10 hover:bg-primary/15 text-foreground/90 px-4 py-1.5 rounded-lg text-sm transition-colors">
-              Sign In
-            </button>
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../api";
 import { checkApiKeyExists } from "../apiclient/key";
+import { useRouter } from "next/navigation";
 
 interface SetApiKeyRequest {
   apiKey: string;
@@ -10,30 +11,30 @@ interface SetApiKeyRequest {
 
 export function useApiKey() {
   const queryClient = useQueryClient();
-
+  const router = useRouter();
   // Query to check if API key exists
-  const { 
-    data: exists = true, 
+  const {
+    data: exists = true,
     isLoading: isChecking,
-    error: existsError 
+    error: existsError,
   } = useQuery({
-    queryKey: ['apiKey', 'exists'],
+    queryKey: ["apiKey", "exists"],
     queryFn: checkApiKeyExists,
     staleTime: 1000 * 60 * 5, // Consider data stale after 5 minutes
   });
 
   // Mutation to set API key
-  const { 
+  const {
     mutateAsync: setApiKey,
     isPending: isSettingKey,
     error: setError,
   } = useMutation({
     mutationFn: async ({ apiKey }: SetApiKeyRequest) => {
-      await api.post('/setup/key', { apiKey });
+      await api.post("/setup/key", { apiKey });
     },
     onSuccess: () => {
       // Invalidate exists query after successful set
-      queryClient.invalidateQueries({ queryKey: ['apiKey', 'exists'] });
+      queryClient.invalidateQueries({ queryKey: ["apiKey", "exists"] });
     },
   });
 
@@ -44,11 +45,12 @@ export function useApiKey() {
     error: removeError,
   } = useMutation({
     mutationFn: async () => {
-      await api.delete('/setup/key');
+      await api.delete("/setup/key");
     },
     onSuccess: () => {
       // Invalidate exists query after successful removal
-      queryClient.invalidateQueries({ queryKey: ['apiKey', 'exists'] });
+      queryClient.invalidateQueries({ queryKey: ["apiKey", "exists"] });
+      router.push("/");
     },
   });
 
@@ -63,6 +65,7 @@ export function useApiKey() {
     setApiKey,
     removeApiKey,
     isLoading,
+    isRemovingKey,
     error: error ? error.message : null,
   };
 }
