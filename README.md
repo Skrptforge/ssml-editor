@@ -16,13 +16,13 @@ sequenceDiagram
 
     User->>Frontend: Enter ElevenLabs API Key
     Note over Frontend: Client-side AES Encryption
-    Frontend->>NextJS_API: POST /api/auth/store-key (encrypted key)
+    Frontend->>NextJS_API: POST /api/auth/store-key 
     NextJS_API->>HTTPOnly_Cookie: Store encrypted key
     Note over HTTPOnly_Cookie: HttpOnly; Secure; SameSite=Strict; Max-Age=86400
     NextJS_API->>Frontend: Success response
 
     User->>Frontend: Submit SSML content
-    Frontend->>NextJS_API: POST /api/voice/generate (SSML data)
+    Frontend->>NextJS_API: POST /api/voice/generate
     HTTPOnly_Cookie->>NextJS_API: Retrieve encrypted API key
     Note over NextJS_API: Server-side AES Decryption
     NextJS_API->>ElevenLabs: API call with decrypted key + SSML
