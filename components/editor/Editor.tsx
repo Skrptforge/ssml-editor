@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useEditorStore } from "@/lib/store";
 import { SortableBlock } from "./SortableBlock";
 import {
@@ -17,6 +17,8 @@ import {
 } from "@dnd-kit/sortable";
 
 export function Editor() {
+  const [isMounted, setIsMounted] = useState(false);
+  
   const {
     blocks,
     selectedBlockId,
@@ -30,7 +32,9 @@ export function Editor() {
       reorderBlocks,
     },
   } = useEditorStore();
+  
   console.log(blocks);
+  
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -39,6 +43,11 @@ export function Editor() {
       },
     })
   );
+
+  // Ensure component is mounted before rendering DnD components
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -128,6 +137,28 @@ export function Editor() {
 
     speechSynthesis.speak(utterance);
   };
+
+  // Render fallback during hydration to prevent mismatch
+  if (!isMounted) {
+    return (
+      <div className="max-w-3xl mx-auto px-4">
+        <div className="space-y-0.5 relative">
+          {blocks.map((block) => (
+            <SortableBlock
+              key={block.id}
+              block={block}
+              isSelected={block.id === selectedBlockId}
+              onChange={updateBlock}
+              onKeyDown={handleKeyDown}
+              onPlay={playBlock}
+              onFocus={(id) => setSelectedBlock(id)}
+              onDelete={deleteBlock}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl mx-auto px-4">

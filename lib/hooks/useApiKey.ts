@@ -1,46 +1,68 @@
 "use client";
 
-import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../api";
+import { checkApiKeyExists } from "../apiclient/key";
+
+interface SetApiKeyRequest {
+  apiKey: string;
+}
 
 export function useApiKey() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const setApiKey = async (apiKey: string) => {
-    setIsLoading(true);
-    setError(null);
+  // Query to check if API key exists
+  const { 
+    data: exists = true, 
+    isLoading: isChecking,
+    error: existsError 
+  } = useQuery({
+    queryKey: ['apiKey', 'exists'],
+    queryFn: checkApiKeyExists,
+    staleTime: 1000 * 60 * 5, // Consider data stale after 5 minutes
+  });
 
-    try {
-      await api.post('/key', { apiKey });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to set API key";
-      setError(message);
-      throw new Error(message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Mutation to set API key
+  const { 
+    mutateAsync: setApiKey,
+    isPending: isSettingKey,
+    error: setError,
+  } = useMutation({
+    mutationFn: async ({ apiKey }: SetApiKeyRequest) => {
+      await api.post('/setup/key', { apiKey });
+    },
+    onSuccess: () => {
+      // Invalidate exists query after successful set
+      queryClient.invalidateQueries({ queryKey: ['apiKey', 'exists'] });
+    },
+  });
 
-  const removeApiKey = async () => {
-    setIsLoading(true);
-    setError(null);
+  // Mutation to remove API key
+  const {
+    mutateAsync: removeApiKey,
+    isPending: isRemovingKey,
+    error: removeError,
+  } = useMutation({
+    mutationFn: async () => {
+      await api.delete('/setup/key');
+    },
+    onSuccess: () => {
+      // Invalidate exists query after successful removal
+      queryClient.invalidateQueries({ queryKey: ['apiKey', 'exists'] });
+    },
+  });
 
-    try {
-      await api.delete('/key');
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to remove API key";
-      setError(message);
-      throw new Error(message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Combine all loading states
+  const isLoading = isChecking || isSettingKey || isRemovingKey;
+
+  // Get the relevant error (if any)
+  const error = existsError || setError || removeError;
 
   return {
+    exists,
     setApiKey,
     removeApiKey,
     isLoading,
-    error,
+    error: error ? error.message : null,
   };
 }

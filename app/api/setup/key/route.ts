@@ -1,10 +1,9 @@
 import { encrypt } from "@/lib/encryption";
 import { NextRequest, NextResponse } from "next/server";
-
 export async function POST(req: NextRequest) {
   try {
     const { apiKey } = await req.json();
-    
+
     if (!apiKey) {
       return NextResponse.json(
         { error: "API key is required" },
@@ -18,7 +17,7 @@ export async function POST(req: NextRequest) {
     // Set the encrypted key in an HTTP-only cookie
     // Cookie expires in 30 days
     const response = NextResponse.json({ success: true });
-    response.cookies.set("elevenlabs-key", encryptedKey, {
+    response.cookies.set("audioservice-key", encryptedKey, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -38,6 +37,6 @@ export async function POST(req: NextRequest) {
 export async function DELETE() {
   // Clear the API key cookie
   const response = NextResponse.json({ success: true });
-  response.cookies.set("elevenlabs-key", "", { maxAge: 0 });
+  response.cookies.set("audioservice-key", "", { maxAge: 0 });
   return response;
 }
