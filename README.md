@@ -9,23 +9,34 @@ Our API key handling system ensures your ElevenLabs API key remains protected th
 ```mermaid
 sequenceDiagram
     participant User
-    participant Client
-    participant Server
-    participant Cookie
+    participant Frontend
+    participant NextJS_API
+    participant HTTPOnly_Cookie
     participant ElevenLabs
 
     %% Key Storage Flow
-    User->>Client: Enter API Key
-    Note over Client: AES Encryption
-    Client->>Server: Send encrypted key
-    Server->>Cookie: Store in HTTP-only cookie
+    User->>Frontend: Enter ElevenLabs API Key
+    Note over Frontend: Client-side AES Encryption
+    Frontend->>NextJS_API: POST /api/auth/store-key (encrypted key)
+    NextJS_API->>HTTPOnly_Cookie: Store encrypted key
+    Note over HTTPOnly_Cookie: HttpOnly; Secure; SameSite=Strict; Max-Age=86400
+    NextJS_API->>Frontend: Success response
 
-    %% Key Usage Flow
-    Client->>Server: Request TTS
-    Cookie->>Server: Get encrypted key
-    Note over Server: AES Decryption
-    Server->>ElevenLabs: Make API call with decrypted key
-    ElevenLabs->>Client: Return audio
+    %% Voice Generation Flow
+    User->>Frontend: Submit SSML content
+    Frontend->>NextJS_API: POST /api/voice/generate (SSML data)
+    HTTPOnly_Cookie->>NextJS_API: Retrieve encrypted API key
+    Note over NextJS_API: Server-side AES Decryption
+    NextJS_API->>ElevenLabs: API call with decrypted key + SSML
+    ElevenLabs->>NextJS_API: Return audio stream
+    NextJS_API->>Frontend: Stream audio response
+    Frontend->>User: Play generated audio
+
+    %% Optional: Key Cleanup
+    User->>Frontend: Logout/Clear key
+    Frontend->>NextJS_API: POST /api/auth/clear-key
+    NextJS_API->>HTTPOnly_Cookie: Delete cookie
+    NextJS_API->>Frontend: Confirmation
 ```
 
 ### How it Works
