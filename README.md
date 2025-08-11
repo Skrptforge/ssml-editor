@@ -14,7 +14,6 @@ sequenceDiagram
     participant HTTPOnly_Cookie
     participant ElevenLabs
 
-    %% Key Storage Flow
     User->>Frontend: Enter ElevenLabs API Key
     Note over Frontend: Client-side AES Encryption
     Frontend->>NextJS_API: POST /api/auth/store-key (encrypted key)
@@ -22,7 +21,6 @@ sequenceDiagram
     Note over HTTPOnly_Cookie: HttpOnly; Secure; SameSite=Strict; Max-Age=86400
     NextJS_API->>Frontend: Success response
 
-    %% Voice Generation Flow
     User->>Frontend: Submit SSML content
     Frontend->>NextJS_API: POST /api/voice/generate (SSML data)
     HTTPOnly_Cookie->>NextJS_API: Retrieve encrypted API key
@@ -32,7 +30,6 @@ sequenceDiagram
     NextJS_API->>Frontend: Stream audio response
     Frontend->>User: Play generated audio
 
-    %% Optional: Key Cleanup
     User->>Frontend: Logout/Clear key
     Frontend->>NextJS_API: POST /api/auth/clear-key
     NextJS_API->>HTTPOnly_Cookie: Delete cookie
