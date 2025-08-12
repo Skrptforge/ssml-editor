@@ -1,3 +1,8 @@
+export type ProsodyRate = "x-slow" | "slow" | "medium" | "fast" | "x-fast";
+export type ProsodyPitch = "x-low" | "low" | "medium" | "high" | "x-high";
+export type ProsodyVolume = "silent" | "x-soft" | "soft" | "medium" | "loud" | "x-loud";
+export type PhonemeAlphabet = "ipa" | "x-sampa";
+
 export interface Block {
   id: string;
   text: string;
@@ -8,13 +13,27 @@ export interface Block {
     level: "strong" | "moderate" | "reduced";
   };
   prosody?: {
-    rate?: string;  
-    pitch?: string; 
-    volume?: string; 
+    rate?: ProsodyRate;
+    pitch?: ProsodyPitch;
+    volume?: ProsodyVolume;
+  };
+  phoneme?: {
+    alphabet: PhonemeAlphabet;
+    ph: string;
   };
 }
-
 export interface Selection {
   blockId: string;
   offset: number;
+}
+
+
+export interface BlockStyles {
+  className: string;
+  indicators: {
+    phoneme?: string;
+    emphasis?: string;
+    prosody?: string[];
+    break?: string;
+  };
 }

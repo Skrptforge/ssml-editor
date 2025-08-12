@@ -4,15 +4,12 @@ import React, { useEffect, useRef } from "react";
 import { Block } from "@/lib/types";
 import { Play } from "lucide-react";
 import { SSMLOptionsMenu } from "./SSMLOptionsMenu";
-
+import { generateBlockStyles } from "@/lib/utils";
 
 interface BlockProps {
   block: Block;
   isSelected: boolean;
-  onChange: (
-    id: string, 
-    updates: Partial<Omit<Block, 'id'>>
-  ) => void;
+  onChange: (id: string, updates: Partial<Omit<Block, "id">>) => void;
   onKeyDown: (e: React.KeyboardEvent, id: string) => void;
   onPlay: (block: Block) => void;
   onFocus: (id: string) => void;
@@ -28,14 +25,14 @@ export function BlockComponent({
   onFocus,
 }: BlockProps) {
   const contentRef = useRef<HTMLDivElement>(null);
-
+  const { className } = generateBlockStyles(block);
   // Focus the block and set cursor at the beginning when selected
   useEffect(() => {
     if (isSelected && contentRef.current) {
       contentRef.current.focus();
       const selection = window.getSelection();
       const range = document.createRange();
-      
+
       if (contentRef.current.firstChild) {
         range.setStart(contentRef.current.firstChild, 0);
         range.setEnd(contentRef.current.firstChild, 0);
@@ -43,7 +40,7 @@ export function BlockComponent({
         range.setStart(contentRef.current, 0);
         range.setEnd(contentRef.current, 0);
       }
-      
+
       selection?.removeAllRanges();
       selection?.addRange(range);
     }
@@ -87,7 +84,7 @@ export function BlockComponent({
             !block.text
               ? "before:content-[attr(data-placeholder)] before:text-muted-foreground"
               : "text-foreground/80"
-          }`}
+          } ${className}`}
           style={{ wordBreak: "break-word" }}
           data-placeholder="Write here..."
         />
@@ -97,8 +94,6 @@ export function BlockComponent({
           onChange={(updates) => onChange(block.id, updates)}
         />
       </div>
-
-
     </div>
   );
 }

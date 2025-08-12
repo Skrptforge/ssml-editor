@@ -15,10 +15,11 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { blocksToSSML } from "@/lib/convert-to-ssml";
 
 export function Editor() {
   const [isMounted, setIsMounted] = useState(false);
-  
+
   const {
     blocks,
     selectedBlockId,
@@ -32,9 +33,7 @@ export function Editor() {
       reorderBlocks,
     },
   } = useEditorStore();
-  
-  console.log(blocks);
-  
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
