@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Block } from "@/lib/types";
 import { Play } from "lucide-react";
 import { SSMLOptionsMenu } from "./SSMLOptionsMenu";
 import { generateBlockStyles } from "@/lib/utils";
+import { clear } from "console";
 
 interface BlockProps {
   block: Block;
@@ -26,7 +27,13 @@ export function BlockComponent({
 }: BlockProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const { className } = generateBlockStyles(block);
-  // Focus the block and set cursor at the beginning when selected
+  const [localtext, setlocaltext] = useState(block.text);
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      onChange(block.id, { text: localtext });
+    }, 50);
+    return () => clearTimeout(timeout);
+  }, [block.id, localtext, onChange]);
   useEffect(() => {
     if (isSelected && contentRef.current) {
       contentRef.current.focus();
@@ -55,12 +62,11 @@ export function BlockComponent({
 
   const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
     const newText = e.currentTarget.textContent || "";
-    onChange(block.id, { text: newText });
+    setlocaltext(newText);
   };
-
   return (
     <div
-      className={`flex flex-col gap-2 px-4 py-2 cursor-pointer rounded-md transition-colors ${
+      className={`flex flex-col gap-2 px-4 py-1 cursor-pointer rounded-md transition-colors ${
         isSelected ? "bg-muted" : "hover:bg-muted/50"
       }`}
     >
@@ -81,7 +87,7 @@ export function BlockComponent({
           onKeyDown={(e) => onKeyDown(e, block.id)}
           onFocus={() => onFocus(block.id)}
           className={`flex-1 outline-none min-h-[1.5em] text-base leading-[1.6] py-0.5 ${
-            !block.text
+            !localtext
               ? "before:content-[attr(data-placeholder)] before:text-muted-foreground"
               : "text-foreground/80"
           } ${className}`}

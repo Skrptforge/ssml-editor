@@ -15,6 +15,7 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import Toolbar from "./Toolbar";
 
 export function Editor() {
   const [isMounted, setIsMounted] = useState(false);
@@ -138,7 +139,6 @@ export function Editor() {
       }
     }
   };
-
   const playBlock = async (block: { id: string; text: string }) => {
     // Stop any ongoing speech
     speechSynthesis.cancel();
@@ -181,6 +181,7 @@ export function Editor() {
 
   return (
     <div className="max-w-3xl mx-auto px-4">
+      <Toolbar />
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
