@@ -45,7 +45,7 @@ export function SortableBlock(props: SortableBlockProps) {
           {...attributes}
           {...listeners}
         >
-          <GripVertical className="w-3 h-3 text-white/40" />
+          <GripVertical className="w-3 h-3 " />
         </button>
       </div>
     </div>

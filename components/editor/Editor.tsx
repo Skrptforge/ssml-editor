@@ -70,17 +70,28 @@ export function Editor() {
     // Handle arrow key navigation
     if (e.key === "ArrowUp" || e.key === "ArrowDown") {
       const currentIndex = blocks.findIndex((b) => b.id === id);
+      const selection = window.getSelection();
+      const range = selection?.getRangeAt(0);
 
-      if (e.key === "ArrowUp" && currentIndex > 0) {
+      // Caret position in the current editable block
+      const isAtStart = range?.startOffset === 0 && range?.collapsed;
+      const isAtEnd =
+        range?.endOffset === e.currentTarget.textContent.length &&
+        range?.collapsed;
+
+      if (e.key === "ArrowUp" && isAtStart && currentIndex > 0) {
         e.preventDefault();
         const prevBlock = blocks[currentIndex - 1];
         setSelectedBlock(prevBlock.id);
-      } else if (e.key === "ArrowDown" && currentIndex < blocks.length - 1) {
+      } else if (
+        e.key === "ArrowDown" &&
+        isAtEnd &&
+        currentIndex < blocks.length - 1
+      ) {
         e.preventDefault();
         const nextBlock = blocks[currentIndex + 1];
         setSelectedBlock(nextBlock.id);
       }
-      return;
     }
 
     if (e.key === "Enter" && !e.shiftKey) {

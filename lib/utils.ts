@@ -5,7 +5,6 @@ import { twMerge } from "tailwind-merge";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
-
 export function generateBlockStyles(block: Block): BlockStyles {
   let className = "";
   const indicators: BlockStyles["indicators"] = {};
@@ -17,15 +16,15 @@ export function generateBlockStyles(block: Block): BlockStyles {
   if (block.emphasis) {
     switch (block.emphasis.level) {
       case "strong":
-        className += "font-bold text-foreground ";
+        className += "font-bold text-black dark:text-white ";
         indicators.emphasis = "STRONG";
         break;
       case "moderate":
-        className += "font-semibold text-foreground/90 ";
+        className += "font-semibold text-gray-800 dark:text-gray-200 ";
         indicators.emphasis = "MODERATE";
         break;
       case "reduced":
-        className += "font-light text-foreground/60 ";
+        className += "font-light text-gray-500 dark:text-gray-400 ";
         indicators.emphasis = "REDUCED";
         break;
     }
@@ -61,27 +60,27 @@ export function generateBlockStyles(block: Block): BlockStyles {
       }
     }
 
-    // Pitch styles (using color variations)
+    // Pitch styles (using grayscale variations)
     if (block.prosody.pitch) {
       switch (block.prosody.pitch) {
         case "x-low":
-          className += "text-red-600 dark:text-red-400 ";
+          className += "text-gray-900 dark:text-gray-100 ";
           prosodyIndicators.push("X-LOW");
           break;
         case "low":
-          className += "text-orange-600 dark:text-orange-400 ";
+          className += "text-gray-700 dark:text-gray-300 ";
           prosodyIndicators.push("LOW");
           break;
         case "medium":
-          className += "text-foreground ";
+          className += "text-gray-600 dark:text-gray-400 ";
           prosodyIndicators.push("MED");
           break;
         case "high":
-          className += "text-blue-600 dark:text-blue-400 ";
+          className += "text-gray-400 dark:text-gray-600 ";
           prosodyIndicators.push("HIGH");
           break;
         case "x-high":
-          className += "text-purple-600 dark:text-purple-400 ";
+          className += "text-gray-300 dark:text-gray-700 ";
           prosodyIndicators.push("X-HIGH");
           break;
       }
@@ -122,10 +121,10 @@ export function generateBlockStyles(block: Block): BlockStyles {
     }
   }
 
-  // Phoneme styles
+  // Phoneme styles (black and white theme)
   if (block.phoneme && block.phoneme.ph) {
     className +=
-      "font-mono bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 px-1 py-0.5 rounded border border-blue-200 dark:border-blue-800 border-dashed ";
+      "font-mono bg-gray-100 dark:bg-gray-800 text-black dark:text-white px-1 py-0.5 rounded border border-gray-300 dark:border-gray-600 border-dashed ";
     indicators.phoneme = `${block.phoneme.alphabet.toUpperCase()}: ${
       block.phoneme.ph
     }`;
