@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useEditorStore } from "@/lib/store";
 import { SortableBlock } from "./SortableBlock";
 import {
@@ -15,7 +15,6 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { blocksToSSML } from "@/lib/convert-to-ssml";
 
 export function Editor() {
   const [isMounted, setIsMounted] = useState(false);
@@ -33,7 +32,18 @@ export function Editor() {
       reorderBlocks,
     },
   } = useEditorStore();
-
+  const lastEnterTime = useRef(0);
+  const DEBOUNCE_DELAY = 100;
+  const debouncedCreateBlock = useCallback(
+    (id: string, content: string, position: number) => {
+      const now = Date.now();
+      if (now - lastEnterTime.current >= DEBOUNCE_DELAY) {
+        createBlock(id, content, position);
+        lastEnterTime.current = now;
+      }
+    },
+    [createBlock]
+  );
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -55,7 +65,6 @@ export function Editor() {
       reorderBlocks(active.id as string, over.id as string);
     }
   };
-
   // Stop any ongoing speech when switching blocks
   useEffect(() => {
     return () => {
@@ -97,7 +106,7 @@ export function Editor() {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       // Create new block and split text at cursor position
-      createBlock(id, "", cursorPosition);
+      debouncedCreateBlock(id, "", cursorPosition);
     } else if (e.key === "Backspace") {
       const block = blocks.find((b) => b.id === id);
       const selection = window.getSelection();
