@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 import { ApiKeyModal } from "@/components/ApiKeyModal";
 import { Providers } from "@/components/providers";
+import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,7 +38,8 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <ApiKeyModal/>
+            <ApiKeyModal />
+            <Toaster />
             {children}
           </ThemeProvider>
         </Providers>

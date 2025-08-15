@@ -9,17 +9,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { Languages, CheckSquare, Square, RotateCcw } from "lucide-react";
+import { Languages, CheckSquare, Square } from "lucide-react";
 import VoiceSelector from "./VoiceSelector";
+import { VoicesDialog } from "../audio/VoiceDialog";
 
 const Toolbar = () => {
-  const { setLanguage, selectAllBlocks, clearAllSelectedBlocks } =
-    useEditorStore((state) => state.actions);
-  const { selectedBlocksId, blocks, language } = useEditorStore(
+  const {
+    setLanguage,
+    selectAllBlocks,
+    clearAllSelectedBlocks,
+    setDefaultVoice,
+  } = useEditorStore((state) => state.actions);
+  const { selectedBlocksId, blocks, language, defaultVoice } = useEditorStore(
     (state) => state
   );
-
+  const handleSelectVoice = (voiceId: string, voiceName: string) => {
+    setDefaultVoice(voiceId, voiceName);
+  };
   // Common languages for text-to-speech
   const languages = [
     { value: "en-US", label: "English (US)" },
@@ -82,7 +88,10 @@ const Toolbar = () => {
           </div>
 
           {/* Voice Selection */}
-          <VoiceSelector />
+          <VoicesDialog
+            onSelectVoice={handleSelectVoice}
+            currentVoiceId={defaultVoice?.id}
+          />
         </div>
       </div>
     </div>

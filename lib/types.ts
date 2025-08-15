@@ -22,11 +22,6 @@ export interface Block {
     ph: string;
   };
 }
-export interface Selection {
-  blockId: string;
-  offset: number;
-}
-
 
 export interface BlockStyles {
   className: string;
