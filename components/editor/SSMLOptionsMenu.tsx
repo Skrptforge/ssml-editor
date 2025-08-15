@@ -17,6 +17,7 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
+import { VoiceOption } from "../audio/VoiceOption";
 
 interface SSMLOptionsMenuProps {
   block: Block;
@@ -107,6 +108,11 @@ export function SSMLOptionsMenu({ block, onChange }: SSMLOptionsMenuProps) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>Options</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+
+        {/* Voice Option */}
+        <VoiceOption block={block} onChange={onChange} />
+
         <DropdownMenuSeparator />
 
         <div className="px-2 py-1.5 flex items-center justify-between ">

@@ -10,8 +10,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Languages, CheckSquare, Square } from "lucide-react";
-import VoiceSelector from "./VoiceSelector";
 import { VoicesDialog } from "../audio/VoiceDialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const Toolbar = () => {
   const {
@@ -23,10 +28,11 @@ const Toolbar = () => {
   const { selectedBlocksId, blocks, language, defaultVoice } = useEditorStore(
     (state) => state
   );
+
   const handleSelectVoice = (voiceId: string, voiceName: string) => {
     setDefaultVoice(voiceId, voiceName);
   };
-  // Common languages for text-to-speech
+
   const languages = [
     { value: "en-US", label: "English (US)" },
     { value: "en-GB", label: "English (UK)" },
@@ -51,47 +57,61 @@ const Toolbar = () => {
   const isAllSelected = selectedBlocksId.length === blocks.length;
 
   return (
-    <div className="flex items-center gap-4 p-2 mb-5 bg-card border-b border-border">
-      {/* Block Selection Controls */}
+    <div className="flex items-center gap-4 py-2 mb-5 bg-card border-b border-border">
       <div className="flex items-center justify-between w-full">
-        <div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleSelectAll}
-            className="flex items-center gap-2"
-          >
-            {isAllSelected ? (
-              <CheckSquare className="h-4 w-4" />
-            ) : (
-              <Square className="h-4 w-4" />
-            )}
-            {isAllSelected ? "Deselect All" : "Select All"}
-          </Button>
-        </div>
         <div className="flex items-center gap-2">
-          {/* Language Selection */}
-          <div className="flex items-center gap-2">
-            <Languages className="h-4 w-4 text-muted-foreground" />
-            <Select value={language} onValueChange={setLanguage}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Select language" />
-              </SelectTrigger>
-              <SelectContent>
-                {languages.map((lang) => (
-                  <SelectItem key={lang.value} value={lang.value}>
-                    {lang.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="sm" onClick={handleSelectAll}>
+                  {isAllSelected ? (
+                    <CheckSquare className="h-4 w-4" />
+                  ) : (
+                    <Square className="h-4 w-4" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {isAllSelected ? "Deselect All" : "Select All"}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
 
-          {/* Voice Selection */}
-          <VoicesDialog
-            onSelectVoice={handleSelectVoice}
-            currentVoiceId={defaultVoice?.id}
-          />
+        <div className="flex items-center gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Select value={language} onValueChange={setLanguage}>
+                  <SelectTrigger className="p- ">
+                    <Languages className="h-4 w-10 text-muted-foreground" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {languages.map((lang) => (
+                      <SelectItem key={lang.value} value={lang.value}>
+                        {lang.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </TooltipTrigger>
+              <TooltipContent>Select Language</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <VoicesDialog
+                    onSelectVoice={handleSelectVoice}
+                    currentVoiceId={defaultVoice?.id}
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>Select Voice</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
     </div>

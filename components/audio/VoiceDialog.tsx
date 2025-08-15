@@ -35,18 +35,16 @@ export function VoiceCard({
       onClick={handleCardClick}
       className={`group ${
         currentVoiceId === voice.voice_id &&
-        "border light:border-gray-950 dark:border-gray-200"
-      } relative overflow-hidden hover:shadow-xl transition-all duration-300 ease-in-out hover:border-primary/30 cursor-pointer hover:-translate-y-1 hover:scale-[1.02] bg-gradient-to-br from-background to-background/80 backdrop-blur-sm border border-border/50`}
+        "border border-gray-300 dark:border-gray-200"
+      } relative overflow-hidden hover:shadow-xl transition-all duration-300 ease-in-out hover:border-primary/30 cursor-pointer hover:-translate-y-1 hover:scale-[1.02] bg-gradient-to-br from-background to-background/80 backdrop-blur-sm `}
     >
-      <CardContent >
+      <CardContent>
         {/* Compact Header Section */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex-1 min-w-0 flex items-center gap-3">
             {/* Avatar */}
             <Avatar className="h-8 w-8 border border-border/50">
-              <AvatarImage
-                alt={voice.name}
-              />
+              <AvatarImage alt={voice.name} />
               <AvatarFallback>
                 {voice.name?.[0]?.toUpperCase() || "V"}
               </AvatarFallback>
@@ -145,7 +143,6 @@ export function VoicesDialog({
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2 bg-transparent">
           <Volume2 className="w-4 h-4" />
-          Select Voice
         </Button>
       </DialogTrigger>
 

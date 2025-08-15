@@ -1,6 +1,12 @@
 export type ProsodyRate = "x-slow" | "slow" | "medium" | "fast" | "x-fast";
 export type ProsodyPitch = "x-low" | "low" | "medium" | "high" | "x-high";
-export type ProsodyVolume = "silent" | "x-soft" | "soft" | "medium" | "loud" | "x-loud";
+export type ProsodyVolume =
+  | "silent"
+  | "x-soft"
+  | "soft"
+  | "medium"
+  | "loud"
+  | "x-loud";
 export type PhonemeAlphabet = "ipa" | "x-sampa";
 
 export interface Block {
@@ -21,6 +27,7 @@ export interface Block {
     alphabet: PhonemeAlphabet;
     ph: string;
   };
+  voice?: { voiceId: string; voiceName: string };
 }
 
 export interface BlockStyles {
