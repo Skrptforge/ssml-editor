@@ -57,7 +57,7 @@ const Toolbar = () => {
   const isAllSelected = selectedBlocksId.length === blocks.length;
 
   return (
-    <div className="flex items-center gap-4 py-2 mb-5 bg-card border-b border-border">
+    <div className="flex items-center justify-between py-2 mb-5 border-b border-border">
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-2">
           <TooltipProvider>
@@ -102,14 +102,19 @@ const Toolbar = () => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div>
+                <div className="flex items-center gap-2">
                   <VoicesDialog
                     onSelectVoice={handleSelectVoice}
                     currentVoiceId={defaultVoice?.id}
                   />
+                  {defaultVoice?.name && (
+                    <span className="text-sm text-muted-foreground truncate max-w-[120px]">
+                      {defaultVoice.name}
+                    </span>
+                  )}
                 </div>
               </TooltipTrigger>
-              <TooltipContent>Select Voice</TooltipContent>
+              <TooltipContent>Default Voice</TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>

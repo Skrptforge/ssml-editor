@@ -4,17 +4,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Users } from "lucide-react";
 import { VoicesFilter } from "./VoiceFilter";
 import { VoicesGrid } from "./VoiceGrid";
 
 export function VoiceList({
   onSelectVoice,
   currentVoiceId,
+  onClose,
 }: {
   onSelectVoice: (voiceId: string, voiceName: string) => void;
   currentVoiceId?: string;
+  onClose: () => void;
 }) {
   // Global filtering state
   const [searchQuery, setSearchQuery] = useState("");
@@ -46,6 +46,7 @@ export function VoiceList({
         searchQuery={searchQuery}
         genderFilter={genderFilter}
         currentVoiceId={currentVoiceId}
+        onClose={onClose}
       />
     </DialogContent>
   );

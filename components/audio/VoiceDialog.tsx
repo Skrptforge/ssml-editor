@@ -15,6 +15,7 @@ interface VoiceCardProps {
   onPlayPause: (voiceId: string, previewUrl: string) => void;
   onSelectVoice: (voiceId: string, voiceName: string) => void;
   currentVoiceId?: string;
+  onClose: () => void;
 }
 
 export function VoiceCard({
@@ -23,11 +24,13 @@ export function VoiceCard({
   onPlayPause,
   onSelectVoice,
   currentVoiceId,
+  onClose,
 }: VoiceCardProps) {
   const isPlaying = currentlyPlaying === voice.voice_id;
 
   const handleCardClick = () => {
     onSelectVoice(voice.voice_id, voice.name);
+    onClose();
   };
 
   return (
@@ -149,6 +152,7 @@ export function VoicesDialog({
       <VoiceList
         currentVoiceId={currentVoiceId}
         onSelectVoice={onSelectVoice}
+        onClose={() => setOpen(false)}
       />
     </Dialog>
   );

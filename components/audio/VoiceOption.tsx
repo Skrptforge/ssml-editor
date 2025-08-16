@@ -50,10 +50,11 @@ export function VoiceOption({ block, onChange }: VoiceOptionProps) {
           )}
         </DropdownMenuItem>
       </DialogTrigger>
-      
+
       <VoiceList
         onSelectVoice={handleVoiceSelect}
         currentVoiceId={block.voice?.voiceId}
+        onClose={() => setIsDialogOpen(false)}
       />
     </Dialog>
   );

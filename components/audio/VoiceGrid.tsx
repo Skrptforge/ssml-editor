@@ -8,6 +8,7 @@ interface VoicesGridProps {
   genderFilter: string;
   onSelectVoice: (voiceId: string, voiceName: string) => void;
   currentVoiceId?: string;
+  onClose: () => void;
 }
 
 export function VoicesGrid({
@@ -15,6 +16,7 @@ export function VoicesGrid({
   genderFilter,
   onSelectVoice,
   currentVoiceId,
+  onClose,
 }: VoicesGridProps) {
   const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -102,6 +104,7 @@ export function VoicesGrid({
                   onPlayPause={handlePlayPause}
                   onSelectVoice={onSelectVoice}
                   currentVoiceId={currentVoiceId}
+                  onClose={onClose}
                 />
               ))}
             </div>
