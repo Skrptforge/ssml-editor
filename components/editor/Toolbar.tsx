@@ -17,6 +17,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import SelectedPlayButton from "../audio/SelectedPlayButton";
 
 const Toolbar = () => {
   const {
@@ -58,18 +59,21 @@ const Toolbar = () => {
 
   return (
     <div className="flex items-center justify-between py-2 mb-5 border-b border-border">
+                   
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-2">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm" onClick={handleSelectAll}>
-                  {isAllSelected ? (
-                    <CheckSquare className="h-4 w-4" />
-                  ) : (
-                    <Square className="h-4 w-4" />
-                  )}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" onClick={handleSelectAll}>
+                    {isAllSelected ? (
+                      <CheckSquare className="h-4 w-4" />
+                    ) : (
+                      <Square className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
               </TooltipTrigger>
               <TooltipContent>
                 {isAllSelected ? "Deselect All" : "Select All"}
