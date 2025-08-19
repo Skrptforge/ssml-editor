@@ -59,7 +59,6 @@ const Toolbar = () => {
 
   return (
     <div className="flex items-center justify-between py-2 mb-5 border-b border-border">
-                   
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-2">
           <TooltipProvider>
@@ -80,9 +79,18 @@ const Toolbar = () => {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <SelectedPlayButton />
+              </TooltipTrigger>
+              <TooltipContent>Play selected audios</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
 
         <div className="flex items-center gap-2">
+          
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -111,9 +119,13 @@ const Toolbar = () => {
                     onSelectVoice={handleSelectVoice}
                     currentVoiceId={defaultVoice?.id}
                   />
-                  {defaultVoice?.name && (
+                  {defaultVoice?.name ? (
                     <span className="text-sm text-muted-foreground truncate max-w-[120px]">
                       {defaultVoice.name}
+                    </span>
+                  ) : (
+                    <span className="text-sm text-muted-foreground truncate max-w-[120px]">
+                      Select Voice
                     </span>
                   )}
                 </div>

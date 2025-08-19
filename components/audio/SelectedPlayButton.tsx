@@ -12,7 +12,6 @@ const SelectedPlayButton = () => {
   const { selectedBlocksId, blocks, defaultVoice } = useEditorStore(
     (state) => state
   );
-  const { getAudio } = useAudioStore();
   const { mutate: generate, isPending: isLoading } = useGenerateVoices();
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioEl, setAudioEl] = useState<HTMLAudioElement | null>(null);
@@ -22,38 +21,22 @@ const SelectedPlayButton = () => {
   if (selectedBlocks.length === 0) return null;
 
   const handlePlay = () => {
-    const hash = getBlockHash(selectedBlocks);
-    const cached = getAudio(hash);
+    if (!defaultVoice?.id) return;
+    generate(
+      { blocks: selectedBlocks, defaultVoiceId: defaultVoice?.id },
+      {
+        onSuccess: (buf) => {
+          const blob = new Blob([buf], { type: "audio/mpeg" });
+          const url = URL.createObjectURL(blob);
+          const audio = new Audio(url);
+          setAudioEl(audio);
+          audio.play();
+          setIsPlaying(true);
 
-    if (cached) {
-      // play from cache
-      const blob = new Blob([cached], { type: "audio/mpeg" });
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      setAudioEl(audio);
-      audio.play();
-      setIsPlaying(true);
-
-      audio.onended = () => setIsPlaying(false);
-    } else {
-      // generate audio
-      if(!defaultVoice?.id) return;
-      generate(
-        { blocks: selectedBlocks, defaultVoiceId: defaultVoice?.id  },
-        {
-          onSuccess: (buf) => {
-            const blob = new Blob([buf], { type: "audio/mpeg" });
-            const url = URL.createObjectURL(blob);
-            const audio = new Audio(url);
-            setAudioEl(audio);
-            audio.play();
-            setIsPlaying(true);
-
-            audio.onended = () => setIsPlaying(false);
-          },
-        }
-      );
-    }
+          audio.onended = () => setIsPlaying(false);
+        },
+      }
+    );
   };
 
   const handlePause = () => {
@@ -64,18 +47,24 @@ const SelectedPlayButton = () => {
   };
   console.log("SelectedPlayButton rendered", isLoading, isPlaying);
   if (isLoading) {
-    return <Loader2 className="h-5 w-5 animate-spin" />;
+    return (
+      <Button variant="ghost" size="sm" disabled className="h-8 w-8 p-0">
+        <Loader2 className="h-4 w-4 animate-spin" />
+      </Button>
+    )
   }
+
   return (
     <Button
-      variant="default"
-      size="icon"
+      variant="ghost"
+      size="sm"
       disabled={isLoading}
       onClick={isPlaying ? handlePause : handlePlay}
+      className="h-8 w-8 p-0 hover:bg-accent"
     >
-      {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+      {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
     </Button>
-  );
+  )
 };
 
 export default SelectedPlayButton;
