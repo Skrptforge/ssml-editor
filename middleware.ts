@@ -1,13 +1,12 @@
 import { decrypt } from "@/lib/encryption";
 import { NextResponse } from "next/server";
 import { updateSession } from "@/utils/supabase/middleware";
-import type { NextRequest } from "next/server";
+import { NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
   // Run Supabase session middleware first
-  const sessionResponse = await updateSession(request);
-  if (sessionResponse) return sessionResponse;
 
+  console.log("working till here");
   // Only intercept voice-related API routes that need audioservice API key
   if (request.nextUrl.pathname.startsWith("/api/voice")) {
     try {
@@ -21,14 +20,15 @@ export async function middleware(request: NextRequest) {
       const requestHeaders = new Headers(request.headers);
 
       // Add the decrypted API key to headers
-      if(apiKey) requestHeaders.set("x-audioservice-key", apiKey);
-
-      // Return response with modified headers
-      return NextResponse.next({
-        request: {
-          headers: requestHeaders,
-        },
+      if (apiKey) requestHeaders.set("x-audioservice-key", apiKey);
+      const modifiedRequest = new NextRequest(request.url, {
+        method: request.method,
+        headers: requestHeaders,
+        body: request.body,
       });
+      // Return response with modified headers
+      const sessionResponse = await updateSession(modifiedRequest);
+      return sessionResponse;
     } catch (error) {
       console.error("Error processing API key:", error);
       return NextResponse.json({ error: "Invalid API key" }, { status: 401 });
