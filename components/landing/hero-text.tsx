@@ -2,8 +2,11 @@
 import React from "react";
 import { Cover } from "@/components/ui/cover";
 import { motion } from "motion/react";
+import { useRouter } from "next/navigation";
+import { IconSparkles } from "@tabler/icons-react";
 
 export function HeroText() {
+  const router = useRouter();
   return (
     <div className="relative flex flex-col items-center justify-center">
       <span className="inline-flex items-center gap-2 px-3 py-1 z-100  rounded-full bg-gray-400/80 text-black font-bold text-xs shadow mt-20 mb-2">
@@ -34,9 +37,16 @@ export function HeroText() {
       <p className="max-w-xl mx-auto text-center text-base italic md:text-lg text-muted-foreground mt-5 mb-4">
         Let your words echo your imagination.
       </p>
-      <button className="shadow-[0_0_0_3px_#000000_inset] px-6 py-2 bg-transparent border border-black dark:border-white dark:text-white text-black rounded-lg font-bold transform hover:-translate-y-1 transition duration-400">
+      <motion.button
+        onClick={() => router.push("/create")}
+        whileHover={{ scale: 1.1, rotate: 2 }}
+        whileTap={{ scale: 0.95 }}
+        transition={{ duration: 0.1 }}
+        className="shadow-[0_0_0_3px_#000000_inset] cursor-pointer px-3 py-2 bg-transparent border border-black dark:border-white dark:text-white text-black rounded-lg font-bold transform transition"
+      >
+        <IconSparkles className="inline-block mr-2" />
         Start Imagining
-      </button>
+      </motion.button>
       <motion.div
         initial={{
           opacity: 0,

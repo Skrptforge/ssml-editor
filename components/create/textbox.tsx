@@ -1,7 +1,7 @@
 "use client";
 
 import { PlaceholdersAndVanishInput } from "../ui/placeholder-and-vanish-input";
-
+import { MaholWavyBackground } from "../ui/wavy-background";
 
 export function TextBox() {
   const placeholders = [
@@ -20,7 +20,7 @@ export function TextBox() {
     console.log("submitted");
   };
   return (
-    <div className="h-[40rem] flex flex-col justify-center  items-center px-4">
+    <div className=" min-w-6xl flex flex-col justify-center  items-center px-4">
       <PlaceholdersAndVanishInput
         placeholders={placeholders}
         onChange={handleChange}
