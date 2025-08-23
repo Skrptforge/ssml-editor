@@ -115,7 +115,7 @@ export default function LoginPage() {
           <Button
             variant="outline"
             onClick={handleGoogleSignIn}
-            className="w-full flex items-center justify-center gap-2 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-primary"
+            className="w-full flex items-center justify-center gap-2 border border-gray-300 bg-white text-gray-200 hover:bg-gray-50 focus:ring-2 focus:ring-primary"
             style={{ boxShadow: "0 1px 2px rgba(60,64,67,.08)" }}
           >
             <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="h-5 w-5" />

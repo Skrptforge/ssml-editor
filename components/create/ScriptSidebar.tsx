@@ -1,19 +1,25 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import useScripts from "@/lib/hooks/useScripts";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+// ...existing code...
 import {
-  IconChevronLeft,
-  IconChevronRight,
   IconSearch,
   IconFileText,
   IconPlus,
+  IconLogout,
+  IconPin,
 } from "@tabler/icons-react";
+import ScriptCard from "./ScriptCard";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+// ...existing code...
+import { useUser, useSignOut, useAuthStatus } from "@/lib/hooks";
+import { NavbarLogo } from "../ui/resizable-navbar";
 
 export interface Script {
   id: number;
@@ -26,35 +32,43 @@ interface ScriptSidebarProps {
   onSelect?: (script: Script) => void;
 }
 
-const initialScripts: Script[] = [
-  { id: 1, name: "Product Demo Script", date: "2024-01-15", category: "Demo" },
-  { id: 2, name: "Welcome Message", date: "2024-01-14", category: "Greeting" },
-  { id: 3, name: "Tutorial Narration", date: "2024-01-13", category: "Tutorial" },
-  { id: 4, name: "Marketing Pitch", date: "2024-01-12", category: "Marketing" },
-  { id: 5, name: "Customer Support", date: "2024-01-11", category: "Support" },
-];
-
 export const ScriptSidebar: React.FC<ScriptSidebarProps> = ({ onSelect }) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [scripts, setScripts] = useState<Script[]>(initialScripts);
+  const { data, isLoading, fetchNextPage, hasNextPage } = useScripts();
+  const router = useRouter();
+  const scripts = useMemo(() => {
+    // data.pages is an array of Script[] pages from the API
+    const pages = data?.pages ?? [];
+    return pages
+      .flat()
+      .map((s: { id: number; title?: string; created_at?: string }) => ({
+        id: s.id,
+        name: s.title ?? "Untitled",
+        date: s.created_at ?? "",
+        category: "Script",
+      })) as Script[];
+  }, [data]);
   const [isHovered, setIsHovered] = useState(false);
+  const [isPinned, setIsPinned] = useState(false);
+  const pathname = usePathname();
+  const showNew = pathname?.startsWith("/edit");
 
   const filteredScripts = useMemo(() => {
     const q = searchQuery.toLowerCase();
     return scripts.filter(
-      (s) => s.name.toLowerCase().includes(q) || s.category.toLowerCase().includes(q)
+      (s) =>
+        s.name.toLowerCase().includes(q) || s.category.toLowerCase().includes(q)
     );
   }, [scripts, searchQuery]);
 
   const createNew = () => {
-    const newScript: Script = { 
-      id: Date.now(), 
-      name: `New Script ${scripts.length + 1}`, 
-      date: new Date().toISOString().split("T")[0], 
-      category: "Draft" 
-    };
-    setScripts((s) => [newScript, ...s]);
-    onSelect?.(newScript);
+    router.push("/create");
+  };
+
+  const isExpanded = isHovered || isPinned;
+
+  const handlePinToggle = () => {
+    setIsPinned(!isPinned);
   };
 
   return (
@@ -68,34 +82,40 @@ export const ScriptSidebar: React.FC<ScriptSidebarProps> = ({ onSelect }) => {
             border-r border-border bg-white/95 dark:bg-zinc-900/95 backdrop-blur-sm 
             flex flex-col overflow-hidden
             transition-all duration-300 ease-in-out
-            ${isHovered ? 'w-72 shadow-2xl' : 'w-14'}
+            ${isExpanded ? "w-72 shadow-2xl" : "w-14"}
           `}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
+          onMouseEnter={() => !isPinned && setIsHovered(true)}
+          onMouseLeave={() => !isPinned && setIsHovered(false)}
           aria-label="Scripts sidebar"
         >
           {/* Header */}
           <div className="p-4 border-b border-border flex-shrink-0">
             <div className="flex items-center justify-between">
+              <NavbarLogo hidename={!isExpanded} />
               <div className="flex items-center gap-2">
-                <IconFileText className="h-5 w-5 text-primary flex-shrink-0" />
-                <h2 
-                  className={`
-                    font-semibold text-foreground whitespace-nowrap
-                    transition-opacity duration-300
-                    ${isHovered ? 'opacity-100' : 'opacity-0'}
-                  `}
-                >
-                  Scripts
-                </h2>
+                {isExpanded && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`ml-auto flex items-center gap-2 ${isPinned ? 'bg-accent' : ''}`}
+                    aria-label={isPinned ? "Unpin Sidebar" : "Pin Sidebar"}
+                    onClick={handlePinToggle}
+                    title={isPinned ? "Unpin sidebar" : "Pin sidebar"}
+                  >
+                    <IconPin className={`h-4 w-4 `} />
+                  </Button>
+                )}
+                {isExpanded && <LogoutButton />}
               </div>
             </div>
           </div>
 
           {/* Expanded content */}
-          <div 
+          <div
             className={`
-              ${isHovered ? 'flex' : 'hidden'} flex-col flex-1 min-h-0 overflow-hidden
+              ${
+                isExpanded ? "flex" : "hidden"
+              } flex-col flex-1 min-h-0 overflow-hidden
             `}
           >
             <div className="p-4 space-y-4 flex-shrink-0">
@@ -110,11 +130,15 @@ export const ScriptSidebar: React.FC<ScriptSidebarProps> = ({ onSelect }) => {
                 />
               </div>
 
-              <Button className="w-full" size="sm" onClick={createNew}>
-                <IconPlus className="h-4 w-4 mr-2" />
-                New Script
-              </Button>
+              {showNew && (
+                <Button className="w-full" size="sm" onClick={createNew}>
+                  <IconPlus className="h-4 w-4 mr-2" />
+                  New Script
+                </Button>
+              )}
             </div>
+
+            {/* Profile footer inside expanded sidebar */}
 
             <Separator />
 
@@ -122,34 +146,30 @@ export const ScriptSidebar: React.FC<ScriptSidebarProps> = ({ onSelect }) => {
               <div className="space-y-2 py-3">
                 {filteredScripts.length > 0 ? (
                   filteredScripts.map((script) => (
-                    <Card
+                    <ScriptCard
                       key={script.id}
-                      className="cursor-pointer hover:bg-neutral-100 dark:hover:bg-zinc-800 transition-colors border-border"
-                      onClick={() => onSelect?.(script)}
-                    >
-                      <CardContent className="p-3">
-                        <div className="space-y-2">
-                          <h3 className="font-medium text-sm leading-tight truncate text-foreground">
-                            {script.name}
-                          </h3>
-                          <div className="flex items-center justify-between">
-                            <Badge variant="secondary" className="text-xs">
-                              {script.category}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground">
-                              {script.date}
-                            </span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                      script={script}
+                      onClick={onSelect}
+                    />
                   ))
                 ) : (
                   <div className="text-center py-8">
                     <IconFileText className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
                     <p className="text-sm text-muted-foreground">
-                      {searchQuery ? 'No scripts found' : 'No scripts yet'}
+                      {isLoading
+                        ? "Loading..."
+                        : searchQuery
+                        ? "No scripts found"
+                        : "No scripts yet"}
                     </p>
+                  </div>
+                )}
+
+                {hasNextPage && (
+                  <div className="flex justify-center py-2">
+                    <Button size="sm" onClick={() => fetchNextPage()}>
+                      Load more
+                    </Button>
                   </div>
                 )}
               </div>
@@ -157,14 +177,25 @@ export const ScriptSidebar: React.FC<ScriptSidebarProps> = ({ onSelect }) => {
           </div>
 
           {/* Collapsed quick actions */}
-          <div 
+          <div
             className={`
-              ${isHovered ? 'hidden' : 'flex flex-1 flex-col items-center justify-start py-4 space-y-4'}
+              ${
+                isExpanded
+                  ? "hidden"
+                  : "flex flex-1 flex-col items-center justify-start py-4 space-y-4"
+              }
             `}
           >
-            <Button variant="ghost" size="icon" className="h-10 w-10" onClick={createNew}>
-              <IconPlus className="h-5 w-5" />
-            </Button>
+            {showNew && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10"
+                onClick={createNew}
+              >
+                <IconPlus className="h-5 w-5" />
+              </Button>
+            )}
             <Button variant="ghost" size="icon" className="h-10 w-10">
               <IconSearch className="h-5 w-5" />
             </Button>
@@ -172,6 +203,18 @@ export const ScriptSidebar: React.FC<ScriptSidebarProps> = ({ onSelect }) => {
               <IconFileText className="h-5 w-5" />
             </Button>
           </div>
+          {isExpanded ? (
+            <div className="mt-auto p-4">
+              <ProfileFooter />
+            </div>
+          ) : null}
+
+          {/* Hover-expanded profile (when collapsed) shown at bottom */}
+          {!isExpanded ? (
+            <div className="absolute bottom-4  left-0 right-0 flex items-center justify-center">
+              <CollapsedProfile />
+            </div>
+          ) : null}
         </aside>
       </div>
     </div>
@@ -179,3 +222,97 @@ export const ScriptSidebar: React.FC<ScriptSidebarProps> = ({ onSelect }) => {
 };
 
 export default ScriptSidebar;
+
+function ProfileFooter() {
+  const { data: session } = useAuthStatus();
+  const { data } = useUser();
+  const meta = data ?? null;
+  const router = useRouter();
+
+  if (!session)
+    return (
+      <div className="px-1">
+        <Button
+          className="w-full"
+          size="sm"
+          onClick={() => router.push("/login")}
+        >
+          Login
+        </Button>
+      </div>
+    );
+
+  if (!meta) return null;
+
+  return (
+    <div>
+      <div className="flex items-center gap-3">
+        <Avatar className="h-10 w-10">
+          {meta.avatar_url ? (
+            <AvatarImage src={meta.avatar_url} alt={meta.full_name} />
+          ) : (
+            <AvatarFallback>{meta.full_name?.charAt(0)}</AvatarFallback>
+          )}
+        </Avatar>
+        <div>
+          <div className="text-sm font-medium">{meta.full_name}</div>
+          <div className="text-xs text-muted-foreground">{meta.email}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LogoutButton() {
+  const { mutateAsync, isPending: isLoading } = useSignOut();
+  const { data: session } = useAuthStatus();
+  if (!session) return null;
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="ml-auto flex items-left gap-2 "
+      aria-label="Sign out"
+      onClick={() => mutateAsync()}
+      disabled={isLoading}
+      title={isLoading ? "Signing out..." : "Sign out"}
+    >
+      <IconLogout className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+    </Button>
+  );
+}
+
+function CollapsedProfile() {
+  const { data: session } = useAuthStatus();
+  const { data } = useUser();
+  const meta = data ?? null;
+  const router = useRouter();
+
+  if (!session)
+    return (
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-9 w-9 p-0"
+        onClick={() => router.push("/login")}
+        aria-label="Login"
+        title="Login"
+      >
+        <IconPlus className="h-5 w-5" />
+      </Button>
+    );
+
+  if (!meta) return null;
+
+  return (
+    <button className="p-1 rounded-full hover:bg-muted/30">
+      <Avatar className="h-8 w-8">
+        {meta.avatar_url ? (
+          <AvatarImage src={meta.avatar_url} alt={meta.full_name} />
+        ) : (
+          <AvatarFallback>{meta.full_name?.charAt(0)}</AvatarFallback>
+        )}
+      </Avatar>
+    </button>
+  );
+}
