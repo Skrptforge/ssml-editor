@@ -1,4 +1,4 @@
-import { Block } from "@/lib/types";
+import { Block } from "@/lib/types/block";
 import { createClient } from "@/utils/supabase/client";
 
 // Types
@@ -43,7 +43,7 @@ export async function getScripts(
 }
 
 // 1.5 Get a single script by id
-export async function getScriptById(id: number): Promise<ApiResponse<Script>> {
+export async function getScriptById(id: string): Promise<ApiResponse<Script>> {
   try {
     const supabase = createClient();
 
@@ -99,7 +99,6 @@ export async function updateScript(
       .from("scripts")
       .update({
         ...updates,
-        updated_at: new Date().toISOString(), // Optional: manual update timestamp
       })
       .eq("id", id)
       .select()

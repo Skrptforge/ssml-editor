@@ -7,19 +7,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-// ...existing code...
 import {
   IconSearch,
   IconFileText,
   IconPlus,
   IconLogout,
-  IconPin,
+  IconChevronLeft,
 } from "@tabler/icons-react";
 import ScriptCard from "./ScriptCard";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-// ...existing code...
 import { useUser, useSignOut, useAuthStatus } from "@/lib/hooks";
 import { NavbarLogo } from "../ui/resizable-navbar";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export interface Script {
   id: number;
@@ -37,7 +36,6 @@ export const ScriptSidebar: React.FC<ScriptSidebarProps> = ({ onSelect }) => {
   const { data, isLoading, fetchNextPage, hasNextPage } = useScripts();
   const router = useRouter();
   const scripts = useMemo(() => {
-    // data.pages is an array of Script[] pages from the API
     const pages = data?.pages ?? [];
     return pages
       .flat()
@@ -48,8 +46,8 @@ export const ScriptSidebar: React.FC<ScriptSidebarProps> = ({ onSelect }) => {
         category: "Script",
       })) as Script[];
   }, [data]);
-  const [isHovered, setIsHovered] = useState(false);
-  const [isPinned, setIsPinned] = useState(false);
+  // Sidebar expansion is driven solely by the locked state.
+  const [isLocked, setIsLocked] = useState(false);
   const pathname = usePathname();
   const showNew = pathname?.startsWith("/edit");
 
@@ -64,13 +62,6 @@ export const ScriptSidebar: React.FC<ScriptSidebarProps> = ({ onSelect }) => {
   const createNew = () => {
     router.push("/create");
   };
-
-  const isExpanded = isHovered || isPinned;
-
-  const handlePinToggle = () => {
-    setIsPinned(!isPinned);
-  };
-
   return (
     <div className="relative flex-shrink-0">
       {/* Fixed width container that doesn't change */}
@@ -82,30 +73,33 @@ export const ScriptSidebar: React.FC<ScriptSidebarProps> = ({ onSelect }) => {
             border-r border-border bg-white/95 dark:bg-zinc-900/95 backdrop-blur-sm 
             flex flex-col overflow-hidden
             transition-all duration-300 ease-in-out
-            ${isExpanded ? "w-72 shadow-2xl" : "w-14"}
+            ${isLocked ? "w-72 shadow-2xl" : "w-14"}
           `}
-          onMouseEnter={() => !isPinned && setIsHovered(true)}
-          onMouseLeave={() => !isPinned && setIsHovered(false)}
           aria-label="Scripts sidebar"
         >
           {/* Header */}
-          <div className="p-4 border-b border-border flex-shrink-0">
+          <div className="pl-2 py-4 border-b border-border flex-shrink-0">
             <div className="flex items-center justify-between">
-              <NavbarLogo hidename={!isExpanded} />
+              <NavbarLogo hidename={!isLocked} />
               <div className="flex items-center gap-2">
-                {isExpanded && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={`ml-auto flex items-center gap-2 ${isPinned ? 'bg-accent' : ''}`}
-                    aria-label={isPinned ? "Unpin Sidebar" : "Pin Sidebar"}
-                    onClick={handlePinToggle}
-                    title={isPinned ? "Unpin sidebar" : "Pin sidebar"}
-                  >
-                    <IconPin className={`h-4 w-4 `} />
-                  </Button>
-                )}
-                {isExpanded && <LogoutButton />}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={`h-9 w-9 p-0 flex items-center justify-center ${
+                    isLocked ? "bg-accent " : ""
+                  }`}
+                  aria-label={isLocked ? "Collapse Sidebar" : "Expand Sidebar"}
+                  onClick={() => setIsLocked((v) => !v)}
+                  title={isLocked ? "Collapse sidebar" : "Expand sidebar"}
+                >
+                  <IconChevronLeft
+                    className={`h-8 w-8 transition-transform  ${
+                      isLocked ? "" : "rotate-180"
+                    }`}
+                  />
+                </Button>
+                {isLocked && <ThemeToggle />}
+                {isLocked && <LogoutButton />}
               </div>
             </div>
           </div>
@@ -114,7 +108,7 @@ export const ScriptSidebar: React.FC<ScriptSidebarProps> = ({ onSelect }) => {
           <div
             className={`
               ${
-                isExpanded ? "flex" : "hidden"
+                isLocked ? "flex" : "hidden"
               } flex-col flex-1 min-h-0 overflow-hidden
             `}
           >
@@ -180,7 +174,7 @@ export const ScriptSidebar: React.FC<ScriptSidebarProps> = ({ onSelect }) => {
           <div
             className={`
               ${
-                isExpanded
+                isLocked
                   ? "hidden"
                   : "flex flex-1 flex-col items-center justify-start py-4 space-y-4"
               }
@@ -203,14 +197,14 @@ export const ScriptSidebar: React.FC<ScriptSidebarProps> = ({ onSelect }) => {
               <IconFileText className="h-5 w-5" />
             </Button>
           </div>
-          {isExpanded ? (
+          {isLocked ? (
             <div className="mt-auto p-4">
               <ProfileFooter />
             </div>
           ) : null}
 
           {/* Hover-expanded profile (when collapsed) shown at bottom */}
-          {!isExpanded ? (
+          {!isLocked ? (
             <div className="absolute bottom-4  left-0 right-0 flex items-center justify-center">
               <CollapsedProfile />
             </div>

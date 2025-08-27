@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { generateAudio } from "../apiclient/generate";
 import { useAudioStore } from "../audiostore";
 import { getBlockHash } from "../block-hash";
-import { Block } from "../types";
+import { Block } from "../types/block";
 
 export const useGenerateVoices = () => {
   const { getAudio, setAudio } = useAudioStore();

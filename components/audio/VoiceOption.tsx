@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Block } from "@/lib/types";
+import { Block } from "@/lib/types/block";
 import { Users, Check } from "lucide-react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { VoiceList } from "./VoiceList";

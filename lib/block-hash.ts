@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import type { Block } from "./types"; // adjust path if needed
+import type { Block } from "./types/block"; // adjust path if needed
 
 // Deep copy but excluding `id`
 const sanitizeBlocks = (blocks: Block[]) => {

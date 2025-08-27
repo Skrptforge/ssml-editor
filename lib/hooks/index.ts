@@ -8,4 +8,5 @@ export * from "./useAuth";
 export * from "./useAuthStatus";
 export * from "./useDeleteScript";
 export * from "./useScript";
+export * from "./useScriptWithBlocks";
 export * from "./useSignOut";

@@ -5,8 +5,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
 import { BlockComponent } from "./Block";
-import type { Block } from "@/lib/types";
-import { BlockSelectCheckbox } from "./BlockSelectCheckbox";
+import type { Block } from "@/lib/types/block";
 
 interface SortableBlockProps {
   block: Block;
@@ -36,7 +35,6 @@ export function SortableBlock(props: SortableBlockProps) {
 
   return (
     <div ref={setNodeRef} style={style} className="flex items-center gap-2">
-      <BlockSelectCheckbox blockId={props.block.id} />
       <div className="relative w-full">
         <BlockComponent {...props} />
         <div className="absolute left-1 top-1/2 -translate-y-1/2 flex items-center gap-1.5">

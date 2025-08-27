@@ -1,4 +1,4 @@
-import type { Block } from "./types";
+import type { Block } from "./types/block";
 
 export const groupBlocksByVoice = (blocks: Block[]): Block[][] => {
   if (blocks.length === 0) return [];

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { v4 as uuid } from "uuid";
-import { Block } from "@/lib/types";
+import { Block } from "@/lib/types/block";
 
 interface EditorState {
   blocks: Block[];
@@ -26,10 +26,11 @@ interface EditorState {
     clearAllSelectedBlocks: () => void;
     setLanguage: (lang: string) => void;
     setDefaultVoice: (voiceId: string, name: string) => void;
+  setBlocks: (blocks: Block[]) => void;
   };
 }
 
-export const useEditorStore = create<EditorState>((set, get) => ({
+export const useEditorStore = create<EditorState>((set) => ({
   blocks: [
     {
       id: uuid(),
@@ -164,6 +165,13 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     },
     setDefaultVoice: (voiceId: string, name: string) => {
       set({ defaultVoice: { id: voiceId, name } });
+    },
+
+    setBlocks: (blocks: Block[]) => {
+      set(() => ({
+        blocks,
+        selectedBlockId: blocks.length > 0 ? blocks[0].id : null,
+      }));
     },
   },
 }));

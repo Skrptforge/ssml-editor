@@ -1,4 +1,4 @@
-import { Block, BlockStyles } from "@/lib/types";
+import { Block, BlockStyles } from "@/lib/types/block";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 

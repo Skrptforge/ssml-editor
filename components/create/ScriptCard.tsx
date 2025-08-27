@@ -4,6 +4,7 @@ import { Trash } from "lucide-react";
 import { useDeleteScript } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
 import { useRouter, usePathname } from "next/navigation";
+import { useEditorStore } from "@/lib/store";
 
 export interface Script {
   id: number;
@@ -22,9 +23,11 @@ const ScriptCard: React.FC<ScriptCardProps> = ({ script, onClick }) => {
   const pathname = usePathname();
   const isActive =
     typeof pathname === "string" && pathname.startsWith(`/create/${script.id}`);
+  const { actions } = useEditorStore();
   const navigateToCreate = () => {
     onClick?.(script);
     router.push(`/create/${script.id}`);
+    actions.setBlocks([]);
   };
 
   const deleteMutation = useDeleteScript();

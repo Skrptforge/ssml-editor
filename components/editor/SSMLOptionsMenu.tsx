@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Block } from "@/lib/types";
+import { Block } from "@/lib/types/block";
 import { Timer, Bold, MoreVertical, Check, Volume2, Zap, Music, Speaker } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

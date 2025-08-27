@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Block } from "@/lib/types";
+import { Block } from "@/lib/types/block";
 import { Play } from "lucide-react";
 import { SSMLOptionsMenu } from "./SSMLOptionsMenu";
 import { generateBlockStyles } from "@/lib/utils";

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { useEditorStore } from "@/lib/store";
 import { SortableBlock } from "./SortableBlock";
 import {
@@ -180,8 +181,17 @@ export function Editor() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4">
-      <Toolbar />
+    <motion.div 
+      className="w-4xl mt-5 mx-auto px-4"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ 
+        duration: 0.6, 
+        ease: "easeOut",
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }}
+    >
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -191,22 +201,67 @@ export function Editor() {
           items={blocks.map((block) => block.id)}
           strategy={verticalListSortingStrategy}
         >
-          <div className="space-y-0.5 relative">
-            {blocks.map((block) => (
-              <SortableBlock
-                key={block.id}
-                block={block}
-                isSelected={block.id === selectedBlockId}
-                onChange={updateBlock}
-                onKeyDown={handleKeyDown}
-                onPlay={playBlock}
-                onFocus={(id) => setSelectedBlock(id)}
-                onDelete={deleteBlock}
-              />
-            ))}
-          </div>
+          <motion.div 
+            className="space-y-0.5 relative"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: {
+                  staggerChildren: 0.08
+                }
+              }
+            }}
+            initial="hidden"
+            animate="visible"
+          >
+            <AnimatePresence>
+              {blocks.map((block, index) => (
+                <motion.div
+                  key={block.id}
+                  variants={{
+                    hidden: { 
+                      opacity: 0, 
+                      y: 20, 
+                      scale: 0.95 
+                    },
+                    visible: { 
+                      opacity: 1, 
+                      y: 0, 
+                      scale: 1,
+                      transition: {
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 24,
+                        delay: index * 0.05
+                      }
+                    }
+                  }}
+                  initial="hidden"
+                  animate="visible"
+                  exit={{ 
+                    opacity: 0, 
+                    y: -20, 
+                    scale: 0.95,
+                    transition: { duration: 0.3 }
+                  }}
+                  layout
+                >
+                  <SortableBlock
+                    block={block}
+                    isSelected={block.id === selectedBlockId}
+                    onChange={updateBlock}
+                    onKeyDown={handleKeyDown}
+                    onPlay={playBlock}
+                    onFocus={(id) => setSelectedBlock(id)}
+                    onDelete={deleteBlock}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
         </SortableContext>
       </DndContext>
-    </div>
+    </motion.div>
   );
 }

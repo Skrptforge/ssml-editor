@@ -231,20 +231,24 @@ export const MobileNavToggle = ({
 
 export const NavbarLogo = ({ hidename }: { hidename?: boolean }) => {
   return (
-    <a
-      href="#"
-      className="relative z-20  flex  space-x-2 items-center py-1 text-sm font-normal text-black"
-    >
-      <img
-        src="https://assets.aceternity.com/logo-dark.png"
-        alt="logo"
-        width={30}
-        height={30}
-      />
+    <>
       {!hidename ? (
-        <span className="font-medium text-black dark:text-white">Startup</span>
+        <a
+          href="#"
+          className="relative z-20  flex  space-x-2 items-center py-1 text-sm font-normal text-black"
+        >
+          <img
+            src="https://assets.aceternity.com/logo-dark.png"
+            alt="logo"
+            width={30}
+            height={30}
+          />
+          <span className="font-medium text-black dark:text-white">
+            Startup
+          </span>
+        </a>
       ) : null}
-    </a>
+    </>
   );
 };
 

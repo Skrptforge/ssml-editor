@@ -1,4 +1,4 @@
-import { Block } from "./types";
+import { Block } from "./types/block";
 
 /**
  * Converts a Block object to SSML (Speech Synthesis Markup Language) string

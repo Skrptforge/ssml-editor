@@ -1,7 +1,7 @@
 import api from "../api";
 import { blocksToSSML } from "../convert-to-ssml";
 import { groupBlocksByVoice } from "../group-block-by-size";
-import { Block } from "../types";
+import { Block } from "../types/block";
 
 export const generateAudio = async (
   blocks: Block[],
