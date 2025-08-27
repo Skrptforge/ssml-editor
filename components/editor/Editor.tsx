@@ -16,7 +16,6 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import Toolbar from "./Toolbar";
 
 export function Editor() {
   const [isMounted, setIsMounted] = useState(false);
