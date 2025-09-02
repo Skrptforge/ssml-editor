@@ -102,7 +102,7 @@ export async function createInitialScript(
   }
 
   const google = createGoogleGenerativeAI({ apiKey });
-  const model = google("gemini-2.5-flash");
+  const model = google("gemini-2.5-flash-lite");
 
   const { object } = await generateObject({
     model,
@@ -225,7 +225,7 @@ export async function editScript(
   }
 
   const google = createGoogleGenerativeAI({ apiKey });
-  const model = google("gemini-2.5-flash");
+  const model = google("gemini-2.5-flash-lite");
 
   // Convert blocks to a readable format for the AI
   const blocksText = blocks
@@ -312,7 +312,7 @@ export async function factCheckBlocksBatch(blocks?: Block[]) {
   }
 
   const google = createGoogleGenerativeAI({ apiKey });
-  const model = google("gemini-2.5-flash");
+  const model = google("gemini-2.5-flash-lite");
   const blocksText = blocks
     .map(
       (block, index) => `Block ${index + 1} (ID: ${block.id}):\n${block.text}`

@@ -5,6 +5,8 @@ import { Block } from "@/lib/types/block";
 import { Play } from "lucide-react";
 import { SSMLOptionsMenu } from "./SSMLOptionsMenu";
 import { generateBlockStyles } from "@/lib/utils";
+import { useBlockSync } from "@/lib/hooks";
+import { useParams } from "next/navigation";
 
 interface BlockProps {
   block: Block;
@@ -14,13 +16,23 @@ interface BlockProps {
   onPlay: (block: Block) => void;
   onFocus: (id: string) => void;
   onDelete: (id: string) => void;
+  handleSync: () => void;
 }
 
 const BlockComponent = memo<BlockProps>(
-  ({ block, isSelected, onChange, onKeyDown, onPlay, onFocus }: BlockProps) => {
+  ({
+    block,
+    isSelected,
+    onChange,
+    onKeyDown,
+    onPlay,
+    onFocus,
+    handleSync,
+  }: BlockProps) => {
     const contentRef = useRef<HTMLDivElement>(null);
     const { className } = generateBlockStyles(block);
     const [shouldAnimate, setShouldAnimate] = useState(false);
+    const timeref = useRef<ReturnType<typeof setTimeout> | null>(null);
     // Handle animation when block.isAnimated changes
     useEffect(() => {
       if (block.isAnimated) {
@@ -65,8 +77,13 @@ const BlockComponent = memo<BlockProps>(
     const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
       const newText = e.currentTarget.textContent || "";
       onChange(block.id, { text: newText });
+      if (!timeref.current) {
+        timeref.current = setTimeout(() => {
+          handleSync();
+          timeref.current = null;
+        }, 2000);
+      }
     };
-
     return (
       <div
         className={`flex items-center gap-2 px-4 py-1 cursor-pointer rounded-md transition-all duration-300 ${
@@ -110,10 +127,17 @@ const BlockComponent = memo<BlockProps>(
     );
   },
   (prevProps, nextProps) => {
-    // Custom comparison function - only re-render if block or isSelected changes
+    // Custom comparison function - only re-render if specific block properties or isSelected changes
     return (
-      prevProps.block === nextProps.block &&
-      prevProps.isSelected === nextProps.isSelected
+      prevProps.block.id === nextProps.block.id &&
+      prevProps.block.text === nextProps.block.text &&
+      prevProps.block.isAnimated === nextProps.block.isAnimated &&
+      prevProps.isSelected === nextProps.isSelected &&
+      prevProps.onChange === nextProps.onChange &&
+      prevProps.onKeyDown === nextProps.onKeyDown &&
+      prevProps.onPlay === nextProps.onPlay &&
+      prevProps.onFocus === nextProps.onFocus &&
+      prevProps.onDelete === nextProps.onDelete
     );
   }
 );
