@@ -12,6 +12,7 @@ export type PhonemeAlphabet = "ipa" | "x-sampa";
 export interface Block {
   id: string;
   text: string;
+  isAnimated?: boolean;
   break?: {
     time: number;
   };

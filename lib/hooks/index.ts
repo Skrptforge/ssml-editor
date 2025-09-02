@@ -10,3 +10,4 @@ export * from "./useDeleteScript";
 export * from "./useScript";
 export * from "./useScriptWithBlocks";
 export * from "./useSignOut";
+export * from "./useFactCheck";

@@ -30,12 +30,12 @@ const MainContent = () => {
 
   const params = useParams();
   const { slug: scriptId } = params as Record<string, string | undefined>;
-  
-  const { 
-    isGenerating, 
-    isLoadingScript, 
-    scriptError, 
-    isErrorInCreatingScript 
+
+  const {
+    isGenerating,
+    isLoadingScript,
+    scriptError,
+    isErrorInCreatingScript,
   } = useScriptWithBlocks({ scriptId });
 
   // Show loading spinner while fetching script
@@ -47,9 +47,9 @@ const MainContent = () => {
   if (scriptError) {
     return (
       <div className="border w-full">
-        <ErrorState 
-          error={scriptError as Error} 
-          onRetry={() => window.location.reload()} 
+        <ErrorState
+          error={scriptError as Error}
+          onRetry={() => window.location.reload()}
         />
       </div>
     );
@@ -59,26 +59,25 @@ const MainContent = () => {
   if (isErrorInCreatingScript) {
     return (
       <div className="border w-full">
-        <ErrorState 
-          error={new Error("Failed to generate script content")} 
-          onRetry={() => window.location.reload()} 
+        <ErrorState
+          error={new Error("Failed to generate script content")}
+          onRetry={() => window.location.reload()}
         />
       </div>
     );
   }
-
+isGenerating
   return (
     <div className="border w-full">
       <ScriptHeader />
-      {isGenerating ? (
-        <EditorSkeleton />
-      ) : (
-        <Editor />
-      )}
-      <ExpandingTextbox
-        placeholder="Modify script..."
-        onSubmit={handleTextboxSubmit}
-      />
+      {isGenerating ? <EditorSkeleton /> : <Editor />}
+      {scriptId ? (
+        <ExpandingTextbox
+          placeholder="Modify script..."
+          onSubmit={handleTextboxSubmit}
+          id={scriptId}
+        />
+      ) : null}
     </div>
   );
 };

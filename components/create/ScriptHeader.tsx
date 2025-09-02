@@ -4,8 +4,10 @@ import React, { useState } from "react";
 import useScript from "@/lib/hooks/useScript";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { MessageSquare, BarChart2, Database } from "lucide-react";
+import { MessageSquare, BarChart2, Database, ShieldCheck } from "lucide-react";
 import { useCreateInitialScript } from "@/lib/hooks/useAiScript";
+import { Button } from "@/components/ui/button";
+import useFactCheck from "@/lib/hooks/useFactCheck";
 
 interface ScriptHeaderProps {
   onTabChange?: (tab: "script" | "sources" | "analysis") => void;
@@ -20,6 +22,7 @@ const ScriptHeader: React.FC<ScriptHeaderProps> = ({ onTabChange }) => {
   const params = useParams();
   const { slug: scriptId } = params as Record<string, string | undefined>;
   const { data, isLoading, error } = useScript(scriptId as string);
+  const factCheckMutation = useFactCheck();
   const [active, setActive] = useState<"script" | "sources" | "analysis">(
     "script"
   );
@@ -28,6 +31,10 @@ const ScriptHeader: React.FC<ScriptHeaderProps> = ({ onTabChange }) => {
   const handleTab = (tab: "script" | "sources" | "analysis") => {
     setActive(tab);
     onTabChange?.(tab);
+  };
+
+  const handleSearch = () => {
+    factCheckMutation.mutate();
   };
 
   const renderIcon = (key: "script" | "sources" | "analysis") => {
@@ -47,21 +54,41 @@ const ScriptHeader: React.FC<ScriptHeaderProps> = ({ onTabChange }) => {
     <div className="bg-background mx-auto w-4xl">
       <div className="w-full px-6 border-b">
         <div className="py-4 max-w-5xl mx-auto">
-          <h1 className="text-3xl font-normal tracking-normal whitespace-normal break-words">
-            {isLoading ? (
-              <span className="inline-block h-10 w-72 rounded-md bg-muted-foreground/10 animate-pulse" />
-            ) : (
-              title
-            )}
-          </h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-normal tracking-normal whitespace-normal break-words">
+              {isLoading ? (
+                <span className="inline-block h-10 w-72 rounded-md bg-muted-foreground/10 animate-pulse" />
+              ) : (
+                title
+              )}
+            </h1>
+
+            <Button
+              onClick={handleSearch}
+              disabled={factCheckMutation.isPending || isLoading}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <ShieldCheck className="h-4 w-4" />
+              {factCheckMutation.isPending ? "Searching..." : "Search"}
+            </Button>
+          </div>
+
           {error && (
             <p className="text-sm text-muted-foreground/70 mt-2">
               Failed to load script
             </p>
           )}
+
+          {factCheckMutation.error && (
+            <p className="text-sm text-red-500/70 mt-2">
+              Failed to search for facts
+            </p>
+          )}
         </div>
 
-        <nav className="flex items-center gap-8  mt-3">
+        <nav className="flex items-center gap-8 mt-3">
           {TABS.map((tab) => (
             <button
               key={tab.key}

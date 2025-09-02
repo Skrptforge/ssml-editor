@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { v4 as uuid } from "uuid";
 import { Block } from "@/lib/types/block";
+import { FactCheckCorrection } from "@/utils/parsing";
 
 interface EditorState {
   blocks: Block[];
@@ -9,6 +10,8 @@ interface EditorState {
   selectedBlockId: string | null;
   speaking: boolean;
   selectedBlocksId: string[];
+  currentPage: number;
+  corrections: FactCheckCorrection[];
   actions: {
     createBlock: (
       afterId: string,
@@ -26,7 +29,9 @@ interface EditorState {
     clearAllSelectedBlocks: () => void;
     setLanguage: (lang: string) => void;
     setDefaultVoice: (voiceId: string, name: string) => void;
-  setBlocks: (blocks: Block[]) => void;
+    setBlocks: (blocks: Block[]) => void;
+    setCurrentPage: (page: number) => void;
+    setCorrections: (corrections: FactCheckCorrection[]) => void;
   };
 }
 
@@ -42,6 +47,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   selectedBlocksId: [],
   defaultVoice: null,
   language: "en-US",
+  currentPage: 1,
+  corrections: [],
   setDefaultVoiceId: (voiceId: string, name: string) => {
     set({ defaultVoice: { id: voiceId, name } });
   },
@@ -172,6 +179,14 @@ export const useEditorStore = create<EditorState>((set) => ({
         blocks,
         selectedBlockId: blocks.length > 0 ? blocks[0].id : null,
       }));
+    },
+
+    setCurrentPage: (page: number) => {
+      set({ currentPage: page });
+    },
+
+    setCorrections: (corrections: FactCheckCorrection[]) => {
+      set({ corrections });
     },
   },
 }));

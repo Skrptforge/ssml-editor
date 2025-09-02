@@ -7,7 +7,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEditorStore } from "@/lib/store";
 
 export interface Script {
-  id: number;
+  id: string;
   name: string;
   date: string;
   category: string;

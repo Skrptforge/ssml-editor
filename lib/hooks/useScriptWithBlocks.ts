@@ -4,7 +4,7 @@ import { useCreateInitialScript } from "./useAiScript";
 import { useUpdateScript } from "./useUpdateScript";
 import { useEditorStore } from "@/lib/store";
 import { Block } from "@/lib/types/block";
-import type { CreateInitialScriptResponse } from "@/lib/types/script-response";
+import type { ScriptResponse } from "@/lib/types/script-response";
 import { v4 as uuid } from "uuid";
 
 interface UseScriptWithBlocksOptions {
@@ -25,7 +25,7 @@ export const useScriptWithBlocks = ({
   const { mutate: updateScript } = useUpdateScript();
   const { actions } = useEditorStore();
   const handleGenerateBlocksViaScript = async (
-    response: CreateInitialScriptResponse
+    response: ScriptResponse
   ) => {
     const generatedBlocks: Block[] = Object.values(response)
       .filter((b) => b && Array.isArray(b.texts))

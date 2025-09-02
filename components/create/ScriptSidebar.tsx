@@ -21,7 +21,7 @@ import { NavbarLogo } from "../ui/resizable-navbar";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export interface Script {
-  id: number;
+  id: string;
   name: string;
   date: string;
   category: string;
@@ -39,7 +39,7 @@ export const ScriptSidebar: React.FC<ScriptSidebarProps> = ({ onSelect }) => {
     const pages = data?.pages ?? [];
     return pages
       .flat()
-      .map((s: { id: number; title?: string; created_at?: string }) => ({
+      .map((s: { id: string; title?: string; created_at?: string }) => ({
         id: s.id,
         name: s.title ?? "Untitled",
         date: s.created_at ?? "",

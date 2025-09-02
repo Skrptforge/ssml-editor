@@ -1,12 +1,19 @@
 "use server";
 
 import { generateObject } from "ai";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createGoogleGenerativeAI, GoogleGenerativeAIProviderMetadata } from "@ai-sdk/google";
 import { z } from "zod";
 import type {
-  CreateInitialScriptResponse,
-  EditScriptResponse,
+  ScriptResponse,
+  EditResponse,
+  VerifyResponse,
 } from "@/lib/types/script-response";
+import type { Block } from "@/lib/types/block";
+import { generateText } from "ai";
+import {
+  parseFactCheckResponse,
+  type FactCheckCorrection,
+} from "@/utils/parsing";
 
 // Dynamic schema that matches the updated interface with name field
 const CreateInitialScriptSchema = z.object({
@@ -58,10 +65,26 @@ const CreateInitialScriptSchema = z.object({
 
 // For edit operations, we can use a more flexible approach
 const EditScriptSchema = z.object({
-  updates: z.array(
+  operations: z.array(
     z.object({
-      blockId: z.string(),
-      content: z.string(),
+      operation: z.enum(["create", "update", "delete"]),
+      createOperationValue: z
+        .object({
+          content: z.string(),
+          idBefore: z.string().optional(),
+        })
+        .optional(),
+      updateOperationValue: z
+        .object({
+          blockId: z.string(),
+          content: z.string(),
+        })
+        .optional(),
+      deleteOperationValue: z
+        .object({
+          blockId: z.string(),
+        })
+        .optional(),
     })
   ),
 });
@@ -71,25 +94,26 @@ const EditScriptSchema = z.object({
  */
 export async function createInitialScript(
   prompt: string
-): Promise<CreateInitialScriptResponse> {
+): Promise<ScriptResponse> {
   const apiKey = process.env.GOOGLE_API_KEY;
-  console.log("working till here - 1");
 
   if (!apiKey) {
     throw new Error("Missing Google API key. Set process.env.GOOGLE_API_KEY");
   }
 
-  console.log("working till here 2");
   const google = createGoogleGenerativeAI({ apiKey });
-  const model = google("models/gemini-2.5-flash-lite");
+  const model = google("gemini-2.5-flash");
 
   const { object } = await generateObject({
     model,
     schema: CreateInitialScriptSchema,
     prompt: `You are a world-class YouTube content strategist and scriptwriter. Your expertise lies in creating viral, retention-focused content that keeps viewers glued to their screens. Create a masterful script for: "${prompt}"
-
+    
+    
+NOTE : DON'T EVER CRITISISE ANYTHING RELATED TO ANY RELIGEON OR ANY HISTORICAL HINDU FIGURE  
 🎯 STRATEGIC FRAMEWORK:
 Create 2-8 strategically structured segments that build momentum and maximize watch time. Each segment must have both compelling content AND a descriptive name.
+Please don't use sophisticated wordings keep it simple as we do it in youtube, it should be more human.
 
 MANDATORY SEGMENTS:
 • Block 1: "Hook" - Create an irresistible opening that makes scrolling impossible
@@ -107,10 +131,10 @@ DYNAMIC MIDDLE SEGMENTS (choose what serves your story):
 📝 PREMIUM WRITING STANDARDS:
 
 WORD PRECISION:
-• Each block must : 200-300 words total (Hook: 150-200, Conclusion: 150-200)
-• Individual text segments: 25-30 words each not more than that
-• Total 4 segments each block
-• Target: 1500-2000 words total for optimal 8-10 minute pacing
+• Each block must : 200-300 words total (Hook: 150-200, Conclusion: 150-200) unless specified in user prompt
+• Individual text segments: 20-30 words each not more than that unless specified in the user prompt
+• Total 10 segments each block unless specified in the user prompt
+• Target: 1500-2000 words total for optimal 8-10 minute pacing unless specified in the user prompt
 
 PSYCHOLOGICAL ENGAGEMENT:
 • Write like you're revealing secrets to a fascinated friend
@@ -123,7 +147,8 @@ RETENTION TECHNIQUES:
 • Start segments with transitional hooks: "Now here's where it gets crazy..."
 • End segments with forward momentum: "But the story doesn't end there..."
 • Sprinkle in "social proof": "Scientists couldn't believe what they found..."
-• Use sensory details to make abstract concepts vivid
+• Don't start with "Hey everyone today I am going..." this is really cliche and turns off the audience
+• Hook should be very crisp and to the point no jargon and implying to a substance not signal
 
 🎬 OUTPUT REQUIREMENTS:
 Return blocks with both content and strategic naming:
@@ -131,56 +156,57 @@ Return blocks with both content and strategic naming:
 {
     "block1": {
         "texts": [
-            "What if I told you that one of the most famous psychological theories ever conceived might be completely wrong? We're talking about the Oedipus complex, the idea that young boys harbor unconscious desires for their mothers and see their fathers as rivals. It sounds scandalous, right? But hold on, because the truth behind this Freudian concept is far more complex and, frankly, a lot less dramatic than you've been led to believe. Get ready, because we're about to unravel a century-old mystery, and the answer might just shatter everything you thought you knew about childhood development.",
-            "This isn't just ancient history; it's about understanding the very foundations of human psychology. Is this universal truth or a convenient, albeit shocking, fiction? We’re diving deep into the mind, questioning one of Freud’s most controversial claims. Stick around, because by the end of this video, you'll see childhood, family dynamics, and even yourself in a completely new light. The real story behind the Oedipus complex is waiting."
+            "20-30 words (unless specified in user prompt)",
+            "20-30 words (unless specified in user prompt)",
         ],
-        "name": "Hook: The Freudian Fiction?"
+        "name": "Hook: An interesting quest?"
     },
     "block2": {
         "texts": [
-            "So, what exactly is this Oedipus complex? Sigmund Freud, the father of psychoanalysis, proposed it as a central stage in psychosexual development. He believed around the ages of 3 to 6, boys develop an unconscious sexual desire for their mother and feel intense jealousy and rivalry towards their father, whom they perceive as an obstacle. To resolve this anxiety, Freud argued, boys eventually identify with their father, internalizing his traits and adopting the male gender role.",
-            "This entire drama, Freud posited, was rooted in an ancient Greek myth about King Oedipus, who unknowingly killed his father and married his mother. The theory suggests this primal conflict is an inherent part of growing up, a universal experience shaping our personalities and relationships. But here's the kicker: was Freud observing a fundamental human truth, or was he projecting his own theories onto a limited sample size, creating a narrative that simply sounded compelling?"
+            "20-30 words (unless specified in user prompt)",
+            "20-30 words (unless specified in user prompt)",
+            "20-30 words (unless specified in user prompt)",
+            "20-30 words (unless specified in user prompt)",
+            "20-30 words (unless specified in user prompt)",
+            "20-30 words (unless specified in user prompt)",
+            "20-30 words (unless specified in user prompt)",
         ],
-        "name": "Setup: Freud's Shocking Theory Explained"
+        "name": "Hook: An interesting quest?"
     },
-    "block5": {
+     "block3": {
         "texts": [
-            "Consider the evidence from modern psychology and neuroscience. While Freud's specific narrative of sexual desire and rivalry is largely unsubstantiated in its literal interpretation, the underlying themes of attachment, separation, and forming one's identity within the family unit are undeniably powerful. We see strong emotional bonds form between children and primary caregivers, and yes, sometimes this involves navigating complex feelings towards parental figures and other significant adults.",
-            "Neuroscience highlights the critical role of early attachment in brain development, influencing how we form relationships throughout life. The intense emotions and attachments children feel are real, but they manifest in diverse ways, shaped by culture, individual temperament, and specific family environments, not solely by an innate, Oedipal drive. The real impact lies in understanding the *patterns* of attachment, not enforcing a rigid, outdated script."
+            "20-30 words (unless specified in user prompt)",
+            "20-30 words (unless specified in user prompt)",
+            "20-30 words (unless specified in user prompt)",
+            "20-30 words (unless specified in user prompt)",
+            "20-30 words (unless specified in user prompt)",
+            "20-30 words (unless specified in user prompt)",
+            "20-30 words (unless specified in user prompt)",
+            "20-30 words (unless specified in user prompt)",
         ],
-        "name": "Evidence: Modern Perspectives & Attachment"
+        "name": "Hook: An interesting quest?"
     },
-    "block6": {
+     "block3": {
         "texts": [
-            "But what if there's a different way to look at it? Some argue that Freud’s core idea wasn't about literal incestuous desire, but a metaphorical representation of the child's struggle for independence and identity. The 'rivalry' might symbolize the necessary push-pull as a child moves from dependency on parents to establishing their own self. The 'desire' for the mother could represent the primal bond, the security a child seeks, and the eventual identification with the father figure is about adopting societal roles and expectations.",
-            "This interpretation shifts the focus from a potentially problematic sexual undertone to a more universal developmental task. It acknowledges the profound impact parents have on a child's socialization and identity formation, without insisting on a universally prescribed, sexually charged drama. It suggests Freud might have been describing a real psychological process, but cloaked it in language that was both sensational and, perhaps, culturally myopic."
+            "20-30 words (unless specified in user prompt)",
+            "20-30 words (unless specified in user prompt)",
+            "20-30 words (unless specified in user prompt)",
+            "20-30 words (unless specified in user prompt)",
+            "20-30 words (unless specified in user prompt)",
+            "20-30 words (unless specified in user prompt)",
         ],
-        "name": "Twist: The Metaphorical Interpretation"
-    },
-    "block7": {
-        "texts": [
-            "The implications of this re-evaluation are huge. If the Oedipus complex isn't a universal biological truth, it frees us from a potentially damaging and overly rigid framework for understanding child development and mental health. It encourages a more nuanced, culturally sensitive approach, recognizing that families and identity formation vary enormously across the globe.",
-            "This means we can move beyond pathologizing normal variations in childhood experiences. Instead of asking if a child has 'successfully' navigated the Oedipus complex, we can focus on fostering secure attachments, supporting healthy emotional development, and understanding the unique family dynamics at play. It’s about celebrating diversity in human experience, not forcing it into a Freudian mold. This shift has profound impacts on parenting, education, and therapy."
-        ],
-        "name": "Impact: Reconsidering Development & Identity"
-    },
-    "block8": {
-        "texts": [
-            "So, is the Oedipus complex truth or lie? The overwhelming consensus among modern psychologists and anthropologists is that Freud's theory, as a universal, biologically driven stage involving literal desires, is largely a myth – a product of its time and cultural context. However, the *themes* Freud touched upon – the intense bonds within families, the process of forming an identity, navigating relationships with parental figures, and striving for independence – are absolutely real and critically important.",
-            "Freud's genius was in highlighting these crucial developmental processes, even if his specific explanation was flawed. Understanding this distinction allows us to appreciate the enduring questions about human nature without being bound by outdated, overly prescriptive theories. What are your thoughts on this? Did Freud get it fundamentally wrong, or is there a kernel of truth we're still uncovering? Let us know in the comments below, and don't forget to like and subscribe for more deep dives into the mysteries of the mind!"
-        ],
-        "name": "Conclusion: Myth vs. Meaning"
-    }
+        "name": "Hook: An interesting quest?"
+    },....and so on
+
 }
 
 🔥 QUALITY MANDATE:
 Every word must serve retention. Every segment must advance the narrative. Every transition must compel the next click. Create content so engaging that viewers forget they're watching an educational video.`,
   });
-
   // Filter out undefined blocks to return only the blocks that were actually generated
   const filteredObject = Object.fromEntries(
-    Object.entries(object).filter(([_, value]) => value !== undefined)
-  ) as CreateInitialScriptResponse;
+    Object.entries(object).filter(([, value]) => value !== undefined)
+  ) as ScriptResponse;
 
   return filteredObject;
 }
@@ -188,7 +214,10 @@ Every word must serve retention. Every segment must advance the narrative. Every
 /**
  * Server function to edit script using Google Gemini
  */
-export async function editScript(prompt: string): Promise<EditScriptResponse> {
+export async function editScript(
+  prompt: string,
+  blocks: Block[]
+): Promise<EditResponse> {
   const apiKey = process.env.GOOGLE_API_KEY;
 
   if (!apiKey) {
@@ -196,37 +225,145 @@ export async function editScript(prompt: string): Promise<EditScriptResponse> {
   }
 
   const google = createGoogleGenerativeAI({ apiKey });
-  const model = google("gemini-2.5-flash-lite");
+  const model = google("gemini-2.5-flash");
+
+  // Convert blocks to a readable format for the AI
+  const blocksText = blocks
+    .map(
+      (block, index) => `Block ${index + 1} (ID: ${block.id}):\n${block.text}`
+    )
+    .join("\n\n");
 
   const { object } = await generateObject({
     model,
     schema: EditScriptSchema,
-    prompt: `Generate an edit script response based on this prompt: ${prompt}
+    prompt: `You are a world-class YouTube content strategist and scriptwriter. You need to edit an existing script based on the user's request.
 
-Analyze the requested changes and return an array of updates. Each update should specify:
-- blockId: The ID of the block to update (e.g., "block1", "block2")
-- content: The new text content for that block
+EDITING REQUEST: "${prompt}"
 
-Example format:
-{
-  "updates": [
-    {
-      "blockId": "block1",
-      "content": "Updated text for block 1"
-    },
-    {
-      "blockId": "block3", 
-      "content": "Updated text for block 3"
+CURRENT SCRIPT BLOCKS:
+${blocksText}
+
+🎯 EDITING GUIDELINES:
+- Analyze the current blocks and the editing request
+- Return operations to modify the script (create, update, or delete blocks)
+- For CREATE operations: specify content and optionally idBefore (to insert before a specific block)
+- For UPDATE operations: specify blockId and new content
+- For DELETE operations: specify blockId to remove
+- Maintain the same high-quality standards as the original script
+- Each text segment should remain 20-30 words unless specified in user prompt
+- Preserve the retention-focused, engaging tone
+- Only modify what the user specifically requests
+
+📝 QUALITY STANDARDS:
+- Maintain psychological engagement techniques
+- Keep cliffhanger language and curiosity gaps
+- Ensure smooth narrative flow between segments
+- Preserve the viral, retention-focused approach
+- Don't use sophisticated wording - keep it YouTube-friendly
+
+WORD PRECISION:
+• Each block must : 200-300 words total (Hook: 150-200, Conclusion: 150-200) unless specified in the user prompt
+• Individual text segments: 20-30 words each not more than that unless specified in the user prompt
+• Total 10 segments each block unless specified in the user prompt
+• Target: 1500-2000 words total for optimal 8-10 minute pacing unless specified in user prompt
+
+NOTE: DON'T EVER CRITICISE ANYTHING RELATED TO ANY RELIGION OR ANY HISTORICAL HINDU FIGURE
+
+🎬 OUTPUT REQUIREMENTS:
+Return an array of operations:
+
+[
+  {
+    "operation": "create",
+    "createOperationValue": {
+      "content": "New block content here...",
+      "idBefore": "block2" // optional - insert before this block ID
     }
-  ]
-}`,
+  },
+  {
+    "operation": "update", 
+    "updateOperationValue": {
+      "blockId": "block1",
+      "content": "Updated content for block 1..."
+    }
+  },
+  {
+    "operation": "delete",
+    "deleteOperationValue": {
+      "blockId": "block3"
+    }
+  }
+]
+
+Make the requested changes while maintaining the script's viral potential and engagement factor.`,
   });
 
-  // Convert the array format back to the expected object format
-  const editResponse: EditScriptResponse = {};
-  object.updates.forEach((update) => {
-    editResponse[update.blockId] = update.content;
+  return object.operations;
+}
+
+/**
+ * Server function to fact-check script blocks using Google Gemini with URL Context (Batch Processing)
+ */
+export async function factCheckBlocksBatch(blocks?: Block[]) {
+  const apiKey = process.env.GOOGLE_API_KEY;
+  if (!apiKey || !blocks) {
+    throw new Error("Missing Google API key. Set process.env.GOOGLE_API_KEY");
+  }
+
+  const google = createGoogleGenerativeAI({ apiKey });
+  const model = google("gemini-2.5-flash");
+  const blocksText = blocks
+    .map(
+      (block, index) => `Block ${index + 1} (ID: ${block.id}):\n${block.text}`
+    )
+    .join("\n\n");
+
+  const { text, sources, providerMetadata } = await generateText({
+    model: model,
+    tools: {
+      google_search: google.tools.googleSearch({}),
+    },
+    prompt: `You are a world-class information checker and verifier. You need to check the facts of an existing script based on the user's request.
+
+    CURRENT SCRIPT BLOCKS:
+${blocksText}
+
+🎯 CORRECTION GUIDELINES:
+- Analyze the current blocks and the editing request
+- Return the updations to be done on the mis-information or wrong facts.
+- Maintain the same high-quality standards as the original script
+- Preserve the retention-focused, engaging tone
+- Only modify blocks that have mis-leading information or factually incorrect or any problematic block that could get creator in trouble.
+- The severity of the issue can be categorized as low, medium, or high based on its potential impact on the audience.
+
+📝 QUALITY STANDARDS:
+- Maintain psychological engagement techniques
+- Keep cliffhanger language and curiosity gaps
+- Ensure smooth narrative flow between segments
+- Preserve the viral, retention-focused approach
+- Don't use sophisticated wording - keep it YouTube-friendly
+
+NOTE: DON'T EVER CRITICISE ANYTHING RELATED TO ANY RELIGION OR ANY HISTORICAL HINDU FIGURE
+
+🎬 OUTPUT REQUIREMENTS:
+Return the response in following form : 
+
+This is the response from ai ....
+<script-fact-correction-response>
+  <script-fact-correction>
+    <block-id>block1</block-id>
+    <justification>Updated content for block 1...</justification>
+    <updated-content>New content for block 1...</updated-content>
+    <severity>high</severity>
+  </script-fact-correction>
+</script-fact-correction-response>
+some gibberish after that....
+Make the requested changes while maintaining the script's viral potential and engagement factor.`,
   });
 
-  return editResponse;
+  // Parse the response to extract corrections
+  const corrections = parseFactCheckResponse(text);
+
+  return { corrections, sources, providerMetadata };
 }

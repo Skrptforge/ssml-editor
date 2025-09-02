@@ -1,9 +1,16 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+} from "react";
 import { useEditorStore } from "@/lib/store";
 import { SortableBlock } from "./SortableBlock";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DndContext,
   DragEndEvent,
@@ -19,18 +26,21 @@ import {
 
 export function Editor() {
   const [isMounted, setIsMounted] = useState(false);
+  const BLOCKS_PER_PAGE = 10;
 
   const {
     blocks,
     selectedBlockId,
+    currentPage,
+    corrections,
     actions: {
       updateBlock,
       createBlock,
       mergeWithPrevious,
       deleteBlock,
       setSelectedBlock,
-      setSpeaking,
       reorderBlocks,
+      setCurrentPage,
     },
   } = useEditorStore();
   const lastEnterTime = useRef(0);
@@ -59,6 +69,21 @@ export function Editor() {
     setIsMounted(true);
   }, []);
 
+  // Calculate pagination
+  const totalPages = Math.ceil(blocks.length / BLOCKS_PER_PAGE);
+  const startIndex = (currentPage - 1) * BLOCKS_PER_PAGE;
+  const endIndex = startIndex + BLOCKS_PER_PAGE;
+  const currentBlocks = useMemo(
+    () => blocks.slice(startIndex, endIndex),
+    [blocks, startIndex, endIndex]
+  );
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
@@ -66,12 +91,6 @@ export function Editor() {
       reorderBlocks(active.id as string, over.id as string);
     }
   };
-  // Stop any ongoing speech when switching blocks
-  useEffect(() => {
-    return () => {
-      speechSynthesis.cancel();
-    };
-  }, []);
 
   const handleKeyDown = (e: React.KeyboardEvent, id: string) => {
     const selection = window.getSelection();
@@ -139,22 +158,10 @@ export function Editor() {
       }
     }
   };
-  const playBlock = async (block: { id: string; text: string }) => {
-    // Stop any ongoing speech
-    speechSynthesis.cancel();
-    setSpeaking(false);
 
-    if (block.text.trim() === "") return;
-
-    const utterance = new SpeechSynthesisUtterance(block.text);
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
-
-    utterance.onstart = () => setSpeaking(true);
-    utterance.onend = () => setSpeaking(false);
-    utterance.onerror = () => setSpeaking(false);
-
-    speechSynthesis.speak(utterance);
+  const playBlock = (block: { id: string; text: string }) => {
+    // Simple console log instead of speech synthesis
+    console.log("Playing block:", block.text);
   };
 
   // Render fallback during hydration to prevent mismatch
@@ -162,7 +169,7 @@ export function Editor() {
     return (
       <div className="max-w-3xl mx-auto px-4">
         <div className="space-y-0.5 relative">
-          {blocks.map((block) => (
+          {currentBlocks.map((block) => (
             <SortableBlock
               key={block.id}
               block={block}
@@ -172,6 +179,7 @@ export function Editor() {
               onPlay={playBlock}
               onFocus={(id) => setSelectedBlock(id)}
               onDelete={deleteBlock}
+              corrections={corrections}
             />
           ))}
         </div>
@@ -180,87 +188,63 @@ export function Editor() {
   }
 
   return (
-    <motion.div 
-      className="w-4xl mt-5 mx-auto px-4"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ 
-        duration: 0.6, 
-        ease: "easeOut",
-        staggerChildren: 0.1,
-        delayChildren: 0.2
-      }}
-    >
+    <div className="w-4xl mt-1 mx-auto px-4 pb-20">
+      {/* Pagination Header */}
+      {totalPages > 1 && (
+        <div className="flex items-center mb-2 justify-between pb-1 border-b border-border">
+          <div></div>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              variant="outline"
+              size="icon"
+              className="cursor-pointer"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              {currentPage} / {totalPages}
+            </span>
+            <Button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              variant="outline"
+              size="icon"
+              className="cursor-pointer"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
       >
         <SortableContext
-          items={blocks.map((block) => block.id)}
+          items={currentBlocks.map((block) => block.id)}
           strategy={verticalListSortingStrategy}
         >
-          <motion.div 
-            className="space-y-0.5 relative"
-            variants={{
-              hidden: { opacity: 0 },
-              visible: {
-                opacity: 1,
-                transition: {
-                  staggerChildren: 0.08
-                }
-              }
-            }}
-            initial="hidden"
-            animate="visible"
-          >
-            <AnimatePresence>
-              {blocks.map((block, index) => (
-                <motion.div
-                  key={block.id}
-                  variants={{
-                    hidden: { 
-                      opacity: 0, 
-                      y: 20, 
-                      scale: 0.95 
-                    },
-                    visible: { 
-                      opacity: 1, 
-                      y: 0, 
-                      scale: 1,
-                      transition: {
-                        type: "spring",
-                        stiffness: 300,
-                        damping: 24,
-                        delay: index * 0.05
-                      }
-                    }
-                  }}
-                  initial="hidden"
-                  animate="visible"
-                  exit={{ 
-                    opacity: 0, 
-                    y: -20, 
-                    scale: 0.95,
-                    transition: { duration: 0.3 }
-                  }}
-                  layout
-                >
-                  <SortableBlock
-                    block={block}
-                    isSelected={block.id === selectedBlockId}
-                    onChange={updateBlock}
-                    onKeyDown={handleKeyDown}
-                    onPlay={playBlock}
-                    onFocus={(id) => setSelectedBlock(id)}
-                    onDelete={deleteBlock}
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </motion.div>
+          <div className="space-y-0.5 relative">
+            {currentBlocks.map((block) => (
+              <SortableBlock
+                key={block.id}
+                block={block}
+                isSelected={block.id === selectedBlockId}
+                onChange={updateBlock}
+                onKeyDown={handleKeyDown}
+                onPlay={playBlock}
+                onFocus={(id) => setSelectedBlock(id)}
+                onDelete={deleteBlock}
+                corrections={corrections}
+              />
+            ))}
+          </div>
         </SortableContext>
       </DndContext>
-    </motion.div>
+    </div>
   );
 }

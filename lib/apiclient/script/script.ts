@@ -3,7 +3,7 @@ import { createClient } from "@/utils/supabase/client";
 
 // Types
 interface Script {
-  id: number;
+  id: string;
   title: string;
   blocks: { data: Block[] }; // JSONB type
   user_id: string;
@@ -89,7 +89,7 @@ export async function createScript(
 
 // 3. Update an existing script
 export async function updateScript(
-  id: number,
+  id: string,
   updates: Partial<Pick<Script, "title" | "blocks">>
 ): Promise<ApiResponse<Script>> {
   try {
@@ -114,7 +114,7 @@ export async function updateScript(
 }
 
 // 4. Delete a script by id
-export async function deleteScript(id: number): Promise<ApiResponse<Script>> {
+export async function deleteScript(id: string): Promise<ApiResponse<Script>> {
   try {
     const supabase = createClient();
 

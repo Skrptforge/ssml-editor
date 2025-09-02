@@ -4,23 +4,44 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 // using native textarea instead of Input
 import { Button } from "@/components/ui/button";
-import { IconPlus, IconArrowRight } from "@tabler/icons-react";
+import { IconPlus, IconArrowRight, IconLoader } from "@tabler/icons-react";
+import { useEditScript } from "@/lib/hooks/useAiScript";
+import useFactCheck from "@/lib/hooks/useFactCheck";
 
 interface ExpandingTextboxProps {
   placeholder?: string;
   onSubmit?: (value: string) => void;
   className?: string;
+  id: string;
 }
 
 export const ExpandingTextbox: React.FC<ExpandingTextboxProps> = ({
   placeholder = "modify script",
   onSubmit,
   className = "",
+  id,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
 
+  const { mutateAsync } = useEditScript();
+  const handleEditScript = async () => {
+    if (value.trim().length === 0) return;
+
+    setIsLoading(true);
+    try {
+      await mutateAsync({ prompt: value.trim(), id });
+      if (onSubmit) onSubmit(value.trim());
+      setValue("");
+      requestAnimationFrame(adjustHeight);
+    } catch (error) {
+      console.error("Error editing script:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   // adjust textarea height to remove scrollbar
   const adjustHeight = () => {
     const ta = inputRef.current;
@@ -38,21 +59,15 @@ export const ExpandingTextbox: React.FC<ExpandingTextboxProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    const isMod = e.ctrlKey || e.metaKey;
-    if (e.key === "Enter" && isMod) {
-      // Ctrl/Cmd + Enter submits
+    if (e.key === "Enter" && !e.shiftKey) {
+      // Regular Enter submits (Shift+Enter for new line)
       e.preventDefault();
-      if (onSubmit) onSubmit(value);
-      setValue("");
-      requestAnimationFrame(adjustHeight);
+      handleEditScript();
     }
-    // otherwise let Enter produce a newline
   };
 
-  const handleSubmit = () => {
-    if (onSubmit) onSubmit(value);
-    setValue("");
-    requestAnimationFrame(adjustHeight);
+  const handleSubmit = async () => {
+    await handleEditScript();
   };
 
   const handlePlus = () => {
@@ -62,7 +77,7 @@ export const ExpandingTextbox: React.FC<ExpandingTextboxProps> = ({
   useEffect(() => {
     adjustHeight();
   }, []);
-
+  const { mutateAsync: factCheck } = useFactCheck();
   return (
     <motion.div
       className={`
@@ -70,7 +85,7 @@ export const ExpandingTextbox: React.FC<ExpandingTextboxProps> = ({
         ${className}
       `}
       animate={{
-        width: isFocused ? 500 : 300, 
+        width: isFocused ? 500 : 300,
       }}
       transition={{
         type: "spring",
@@ -88,7 +103,11 @@ export const ExpandingTextbox: React.FC<ExpandingTextboxProps> = ({
           backdrop-blur-lg backdrop-saturate-150
           border border-white/20 dark:border-white/10
           shadow-lg shadow-black/5 dark:shadow-black/20
-          ${isFocused ? 'bg-white/15 dark:bg-white/8 border-white/30 dark:border-white/15' : ''}
+          ${
+            isFocused
+              ? "bg-white/15 dark:bg-white/8 border-white/30 dark:border-white/15"
+              : ""
+          }
           transition-all duration-300 ease-out
         `}
       >
@@ -96,6 +115,7 @@ export const ExpandingTextbox: React.FC<ExpandingTextboxProps> = ({
         <Button
           variant="ghost"
           size="icon"
+          disabled={isLoading}
           className="
             h-8 w-8 p-0 rounded-full
             bg-white/10 hover:bg-white/20 dark:bg-white/5 dark:hover:bg-white/10
@@ -103,10 +123,11 @@ export const ExpandingTextbox: React.FC<ExpandingTextboxProps> = ({
             backdrop-blur-sm
             text-black/60 hover:text-black/80 dark:text-white/60 dark:hover:text-white/80
             transition-all duration-200
+            disabled:opacity-50 disabled:cursor-not-allowed
           "
           aria-label="Add"
           onMouseDown={(e) => e.preventDefault()}
-          onClick={handlePlus}
+          onClick={() => factCheck()}
           title="Add"
         >
           <IconPlus className="h-4 w-4" />
@@ -124,6 +145,7 @@ export const ExpandingTextbox: React.FC<ExpandingTextboxProps> = ({
           onBlur={() => setIsFocused(false)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
+          disabled={isLoading}
           rows={1}
           className="
             flex-1 resize-none min-h-[40px] px-4 py-2 rounded-full
@@ -131,6 +153,7 @@ export const ExpandingTextbox: React.FC<ExpandingTextboxProps> = ({
             text-center placeholder:text-center
             text-foreground/80 placeholder:text-foreground/40
             outline-none focus:outline-none ring-0 focus:ring-0 focus-visible:outline-none
+            disabled:opacity-50 disabled:cursor-not-allowed
           "
         />
 
@@ -138,13 +161,18 @@ export const ExpandingTextbox: React.FC<ExpandingTextboxProps> = ({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 p-0 text-foreground/60 hover:text-foreground/80 rounded-full transition-colors"
-          aria-label="Submit"
+          disabled={isLoading || value.trim().length === 0}
+          className="h-8 w-8 p-0 text-foreground/60 hover:text-foreground/80 rounded-full transition-colors disabled:opacity-50"
+          aria-label={isLoading ? "Processing..." : "Submit"}
           onMouseDown={(e) => e.preventDefault()}
           onClick={handleSubmit}
-          title="Submit"
+          title={isLoading ? "Processing..." : "Submit"}
         >
-          <IconArrowRight className="h-4 w-4" />
+          {isLoading ? (
+            <IconLoader className="h-4 w-4 animate-spin" />
+          ) : (
+            <IconArrowRight className="h-4 w-4" />
+          )}
         </Button>
       </div>
     </motion.div>
